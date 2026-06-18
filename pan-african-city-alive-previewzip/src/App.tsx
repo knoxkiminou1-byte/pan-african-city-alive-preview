@@ -596,20 +596,6 @@ function Hero({ onShop }: { onShop: () => void }) {
         <div className="hero-mask-stage">
           <img src={image("hero-cream-mask-cutout.png")} alt="African mask from Pan African City Alive displayed inside a bright cultural store" />
         </div>
-        <div className="launch-panel">
-          <div className="launch-brand">
-            <LogoMark />
-            <span>Mama Keisha:</span>
-          </div>
-          <strong>This is a preview of your website</strong>
-          <span>This shows how Pan African City Alive can welcome people online with your story, a working shop flow, events, gallery moments, and visit details.</span>
-          <ul>
-            <li><Check aria-hidden="true" size={16} /> Preview copy and sample content</li>
-            <li><Check aria-hidden="true" size={16} /> Working shop and inquiry flow</li>
-            <li><Check aria-hidden="true" size={16} /> Real and generated store visuals</li>
-          </ul>
-          <small>Inventory, prices, and dates can be finalized before launch.</small>
-        </div>
       </div>
     </section>
   );
