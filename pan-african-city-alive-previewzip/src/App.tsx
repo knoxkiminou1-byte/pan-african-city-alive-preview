@@ -593,9 +593,7 @@ function Hero({ onShop }: { onShop: () => void }) {
         </div>
       </div>
       <div className="hero-media">
-        <div className="hero-mask-stage">
-          <img src={image("hero-client-mask-curated.png")} alt="African mask from Pan African City Alive displayed inside a bright cultural store" />
-        </div>
+        <div className="hero-mask-stage" />
       </div>
     </section>
   );
