@@ -58,6 +58,8 @@ interface Collection {
 }
 
 const image = (name: string) => `/images/final/${name}`;
+const clientImage = (name: string) => `/images/client/${name}`;
+const drumAudioPath = "/audio/village-drums-of-freedom.ogg";
 
 const products: Product[] = [
   {
@@ -74,7 +76,7 @@ const products: Product[] = [
     id: "wood-carving-trio",
     name: "Wood Carving Trio",
     category: "Carvings",
-    image: image("product-wood-carvings.jpg"),
+    image: clientImage("real-bronze-figure.jpg"),
     price: 84,
     badge: "Sample price",
     description: "A tabletop carving set inspired by the shop's dense wood-art display language.",
@@ -94,7 +96,7 @@ const products: Product[] = [
     id: "mudcloth-textile-bundle",
     name: "Mudcloth Textile Bundle",
     category: "Textiles",
-    image: image("shop-textile-lounge.png"),
+    image: clientImage("real-textile-shelf.jpg"),
     price: 92,
     badge: "Sample price",
     description: "A warm textile bundle for home, display, fashion styling, and gifting.",
@@ -104,7 +106,7 @@ const products: Product[] = [
     id: "garment-rail-edit",
     name: "Garment Rail Edit",
     category: "Garments",
-    image: image("product-garments.jpg"),
+    image: clientImage("real-hood-model.jpg"),
     price: 74,
     badge: "Sample price",
     description: "A colorful apparel rail concept for garments, wraps, and wearable culture.",
@@ -114,7 +116,7 @@ const products: Product[] = [
     id: "beaded-necklace-set",
     name: "Beaded Necklace Set",
     category: "Jewelry",
-    image: image("product-jewelry.jpg"),
+    image: clientImage("real-jewelry-case.jpg"),
     price: 46,
     badge: "Sample price",
     description: "Layered beadwork photographed for a rich counter-display shopping experience.",
@@ -144,7 +146,7 @@ const products: Product[] = [
     id: "books-incense-set",
     name: "Books & Incense Set",
     category: "Books & Oils",
-    image: image("product-books-oils.jpg"),
+    image: clientImage("real-books-shelf.jpg"),
     price: 42,
     badge: "Sample price",
     description: "A cultural-resource bundle joining books, scent, and counter discovery.",
@@ -164,7 +166,7 @@ const products: Product[] = [
     id: "gallery-wall-consult",
     name: "Gallery Wall Consultation",
     category: "Art & Masks",
-    image: image("shop-gallery-back-wall.png"),
+    image: clientImage("real-mask-wall-wide.jpg"),
     price: 150,
     badge: "Inquiry item",
     description: "A service-style listing for curating a home or office wall with cultural objects.",
@@ -174,7 +176,7 @@ const products: Product[] = [
     id: "heritage-gift-bundle",
     name: "Heritage Gift Bundle",
     category: "Gifts",
-    image: image("real-store-merch-wall.jpg"),
+    image: clientImage("real-doll-basket.jpg"),
     price: 58,
     badge: "Sample price",
     description: "A curated gift path for baskets, small art objects, jewelry, books, and oils.",
@@ -185,12 +187,12 @@ const products: Product[] = [
 const collections: Collection[] = [
   {
     title: "Art & Masks",
-    image: image("product-painted-mask.jpg"),
+    image: clientImage("real-front-mask-sign.jpg"),
     description: "Masks, gallery walls, object stories, and collector pieces."
   },
   {
     title: "Carvings",
-    image: image("product-wood-carvings.jpg"),
+    image: clientImage("real-bronze-figure.jpg"),
     description: "Wood figures, tabletop art, ritual objects, and home display."
   },
   {
@@ -200,12 +202,12 @@ const collections: Collection[] = [
   },
   {
     title: "Garments",
-    image: image("product-garments.jpg"),
+    image: clientImage("real-hood-model.jpg"),
     description: "Wearable culture, wraps, shirts, dresses, and statement apparel."
   },
   {
     title: "Jewelry",
-    image: image("product-jewelry.jpg"),
+    image: clientImage("real-jewelry-case.jpg"),
     description: "Beads, bracelets, necklaces, earrings, and counter treasures."
   },
   {
@@ -215,12 +217,12 @@ const collections: Collection[] = [
   },
   {
     title: "Books & Oils",
-    image: image("product-books-oils.jpg"),
+    image: clientImage("real-books-shelf.jpg"),
     description: "Books, resources, incense, fragrance, and learning goods."
   },
   {
     title: "Gifts",
-    image: image("real-store-merch-wall.jpg"),
+    image: clientImage("real-doll-basket.jpg"),
     description: "Curated bundles and small objects for meaningful giving."
   }
 ];
@@ -229,7 +231,7 @@ const programs: Program[] = [
   {
     id: "legacy",
     title: "Open House & Legacy Relaunch",
-    image: image("real-store-room.jpg"),
+    image: image("event-open-house-generated.jpg"),
     dateLabel: "Next date to confirm",
     timeLabel: "Program format ready",
     location: "1848 Bay Road, East Palo Alto",
@@ -238,7 +240,7 @@ const programs: Program[] = [
   {
     id: "drumming",
     title: "African Drumming & Dance",
-    image: image("hero-store-mask.png"),
+    image: image("event-drumming-generated.jpg"),
     dateLabel: "Workshop lane",
     timeLabel: "Dates to confirm",
     location: "Gallery / performance area",
@@ -247,7 +249,7 @@ const programs: Program[] = [
   {
     id: "storytelling",
     title: "African Storytelling Evening",
-    image: image("keisha-story-wall.jpg"),
+    image: image("event-storytelling-generated.jpg"),
     dateLabel: "Story circle",
     timeLabel: "Dates to confirm",
     location: "Founder wall and gallery",
@@ -256,7 +258,7 @@ const programs: Program[] = [
   {
     id: "jewelry",
     title: "Jewelry Making Workshop",
-    image: image("event-jewelry-workshop-crop.jpg"),
+    image: image("event-jewelry-generated.jpg"),
     dateLabel: "Hands-on class",
     timeLabel: "Dates to confirm",
     location: "Workshop table",
@@ -280,55 +282,25 @@ function formatCurrency(value: number) {
 }
 
 function useDrumLoop(enabled: boolean) {
-  const audioContext = useRef<AudioContext | null>(null);
-  const timer = useRef<number | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
+    const audio = audioRef.current ?? new Audio(drumAudioPath);
+    audioRef.current = audio;
+    audio.loop = true;
+    audio.volume = 0.34;
+
     if (!enabled) {
-      if (timer.current) window.clearInterval(timer.current);
-      timer.current = null;
+      audio.pause();
       return;
     }
 
-    const AudioCtor = window.AudioContext || (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
-    if (!AudioCtor) return;
-
-    const ctx = audioContext.current ?? new AudioCtor();
-    audioContext.current = ctx;
-    void ctx.resume();
-
-    const hit = (frequency: number, gainValue: number, delay: number, duration = 0.18) => {
-      const start = ctx.currentTime + delay;
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      const filter = ctx.createBiquadFilter();
-      osc.type = "sine";
-      osc.frequency.setValueAtTime(frequency, start);
-      osc.frequency.exponentialRampToValueAtTime(Math.max(38, frequency * 0.55), start + duration);
-      filter.type = "lowpass";
-      filter.frequency.setValueAtTime(720, start);
-      gain.gain.setValueAtTime(gainValue, start);
-      gain.gain.exponentialRampToValueAtTime(0.0001, start + duration);
-      osc.connect(filter).connect(gain).connect(ctx.destination);
-      osc.start(start);
-      osc.stop(start + duration + 0.05);
-    };
-
-    const pattern = () => {
-      hit(118, 0.085, 0);
-      hit(205, 0.032, 0.28, 0.12);
-      hit(152, 0.052, 0.58, 0.15);
-      hit(238, 0.026, 0.88, 0.12);
-      hit(124, 0.078, 1.16, 0.18);
-      hit(185, 0.038, 1.48, 0.13);
-    };
-
-    pattern();
-    timer.current = window.setInterval(pattern, 1900);
+    void audio.play().catch(() => {
+      audio.pause();
+    });
 
     return () => {
-      if (timer.current) window.clearInterval(timer.current);
-      timer.current = null;
+      audio.pause();
     };
   }, [enabled]);
 }
@@ -463,15 +435,43 @@ function App() {
 function IntroOverlay({ isOpening, onOpen }: { isOpening: boolean; onOpen: () => void }) {
   return (
     <div className={`intro-overlay ${isOpening ? "is-opening" : ""}`}>
-      <img className="intro-image" src={image("hero-store-mask.png")} alt="Colorful Pan African City Alive store interior with a mask centerpiece" />
+      <img className="intro-image" src="/images/generated-mask-store.png" alt="Colorful Pan African City Alive store interior" />
       <div className="intro-scrim" aria-hidden="true" />
-      <button className="mask-opener" type="button" aria-label="Click the mask to open Pan African City Alive" onClick={onOpen}>
-        <span className="mouth-cover" aria-hidden="true" />
-        <span className="mask-command">Click the mask to open</span>
+      <button className="mask-opener" type="button" aria-label="Click the mask to open the Pan African City Alive preview" onClick={onOpen}>
+        <span className="intro-mask-wrap" aria-hidden="true">
+          <img className="intro-mask-cutout" src={image("hero-cream-mask-cutout.png")} alt="" />
+          <svg className="mask-lips" viewBox="0 0 240 82" preserveAspectRatio="none">
+            <defs>
+              <linearGradient id="lipFill" x1="0" x2="0" y1="0" y2="1">
+                <stop offset="0" stopColor="#ff5b42" />
+                <stop offset="0.5" stopColor="#bf1f2a" />
+                <stop offset="1" stopColor="#5a1725" />
+              </linearGradient>
+              <linearGradient id="lipGold" x1="0" x2="1" y1="0" y2="0">
+                <stop offset="0" stopColor="#f5cc5b" stopOpacity="0.2" />
+                <stop offset="0.5" stopColor="#ffe88a" stopOpacity="0.78" />
+                <stop offset="1" stopColor="#f5cc5b" stopOpacity="0.2" />
+              </linearGradient>
+            </defs>
+            <path className="lip-shadow" d="M10 42C45 10 84 11 120 33C156 11 197 10 230 42C194 48 155 48 120 43C84 48 46 48 10 42Z" />
+            <ellipse className="lip-mouth-open" cx="120" cy="48" rx="92" ry="15" />
+            <path className="lip-upper" d="M8 40C45 7 84 10 120 32C156 10 198 7 232 40C198 47 158 48 120 42C82 48 45 47 8 40Z" />
+            <path className="lip-lower" d="M12 43C50 66 88 73 120 58C152 73 191 66 228 43C192 83 49 83 12 43Z" />
+            <path className="lip-center" d="M17 42C58 34 94 35 120 43C146 35 181 34 223 42" />
+            <path className="lip-gold-line" d="M38 31C68 22 96 25 120 37C144 25 174 22 204 31" />
+            <ellipse className="lip-highlight left" cx="75" cy="31" rx="28" ry="5" />
+            <ellipse className="lip-highlight right" cx="166" cy="31" rx="28" ry="5" />
+          </svg>
+        </span>
       </button>
+      <div className="mask-command" aria-hidden="true">
+        <span>Click the mask</span>
+        <strong>to open</strong>
+      </div>
       <div className="intro-panel">
         <LogoMark />
-        <p>Assistant user: this is now the finished storefront draft. Inventory, prices, and booking actions remain demonstration data until Keisha confirms the final catalog.</p>
+        <strong>Hey Mama Keisha, this is a preview.</strong>
+        <p>This is a preview of how Pan African City Alive can feel online: colorful, welcoming, shoppable, and rooted in your story. Products, prices, and dates are sample content until you choose the final details.</p>
         <button className="button primary" type="button" onClick={onOpen}>
           <Sparkles aria-hidden="true" size={18} />
           Enter the store
@@ -548,13 +548,21 @@ function MobileNav({ onClose }: { onClose: () => void }) {
 
 function LogoMark() {
   return (
-    <svg className="logo-mark" viewBox="0 0 100 100" role="img" aria-label="Pan-African red black and green symbol">
-      <path d="M20 56a30 30 0 0 1 60 0" fill="none" stroke="#B3241C" strokeWidth="9" strokeLinecap="round" />
-      <path d="M29 56a21 21 0 0 1 42 0" fill="none" stroke="#151515" strokeWidth="9" strokeLinecap="round" />
-      <path d="M38 56a12 12 0 0 1 24 0" fill="none" stroke="#1E6A45" strokeWidth="9" strokeLinecap="round" />
-      <path d="M50 56v25" stroke="#201A18" strokeWidth="8" strokeLinecap="round" />
-      <circle cx="50" cy="53" r="10" fill="#F6ECD8" stroke="#201A18" strokeWidth="6" />
-      <path d="M50 10c7 12 14 20 25 25-11 5-18 13-25 25-7-12-14-20-25-25 11-5 18-13 25-25z" fill="#D7A332" opacity=".18" />
+    <svg className="logo-mark" viewBox="0 0 100 100" role="img" aria-label="Pan-African flag symbol with Africa silhouette">
+      <circle cx="50" cy="50" r="44" fill="#FFF7E9" stroke="#201A18" strokeWidth="4" />
+      <path d="M18 37h64" stroke="#B3241C" strokeWidth="12" strokeLinecap="round" />
+      <path d="M18 50h64" stroke="#151515" strokeWidth="12" strokeLinecap="round" />
+      <path d="M18 63h64" stroke="#1E6A45" strokeWidth="12" strokeLinecap="round" />
+      <path
+        className="logo-africa"
+        d="M52 13c-8 2-15 7-18 15-3 7 1 12-3 18-3 4-9 6-9 12 0 6 7 8 12 10 6 3 5 10 11 14 5 4 12 1 13-5 2-8-2-12 5-20 5-6 13-7 15-14 3-9-6-11-10-17-5-8-7-15-16-13z"
+        fill="#151515"
+        stroke="#D7A332"
+        strokeWidth="4"
+        strokeLinejoin="round"
+      />
+      <circle cx="50" cy="50" r="20" fill="none" stroke="#FFF7E9" strokeWidth="3" opacity=".92" />
+      <path d="M18 78c18 10 46 10 64 0" fill="none" stroke="#B3241C" strokeWidth="5" strokeLinecap="round" />
     </svg>
   );
 }
@@ -564,7 +572,10 @@ function Hero({ onShop }: { onShop: () => void }) {
     <section className="hero" id="top">
       <div className="hero-copy">
         <p className="hero-welcome">Welcome to</p>
-        <h1>Pan African City Alive</h1>
+        <h1>
+          <span>Pan African</span>
+          <span>City Alive</span>
+        </h1>
         <p className="hero-tagline">Culture. Community. Commerce.</p>
         <p className="hero-text">
           A Black-owned African cultural retail store and community gathering place in East Palo Alto, led by Keisha Evans and rooted in authentic goods, story, and connection.
@@ -586,11 +597,22 @@ function Hero({ onShop }: { onShop: () => void }) {
         </div>
       </div>
       <div className="hero-media">
-        <img src={image("hero-mask-closeup.png")} alt="Colorful African mask centerpiece inside a bright cultural store" />
+        <div className="hero-mask-stage">
+          <img src={image("hero-cream-mask-cutout.png")} alt="African mask from Pan African City Alive displayed inside a bright cultural store" />
+        </div>
         <div className="launch-panel">
-          <strong>Storefront Build</strong>
-          <span>Full shopping flow, event RSVP, founder story, gallery, visit path, and launch-ready SEO foundation.</span>
-          <small>Live commerce data is marked where it still needs confirmation.</small>
+          <div className="launch-brand">
+            <LogoMark />
+            <span>Mama Keisha:</span>
+          </div>
+          <strong>This is a preview of your website</strong>
+          <span>This shows how Pan African City Alive can welcome people online with your story, a working shop flow, events, gallery moments, and visit details.</span>
+          <ul>
+            <li><Check aria-hidden="true" size={16} /> Preview copy and sample content</li>
+            <li><Check aria-hidden="true" size={16} /> Working shop and inquiry flow</li>
+            <li><Check aria-hidden="true" size={16} /> Real and generated store visuals</li>
+          </ul>
+          <small>Inventory, prices, and dates can be finalized before launch.</small>
         </div>
       </div>
     </section>
@@ -601,7 +623,7 @@ function Story() {
   return (
     <section className="story-section" id="story">
       <div className="story-photo">
-        <img src={image("keisha-public-portrait.jpg")} alt="Keisha Evans smiling inside Pan African City Alive" />
+        <img src={image("mama-keisha-preview.jpg")} alt="Mama Keisha smiling inside a warm Pan African City Alive preview store setting" />
       </div>
       <div className="story-copy">
         <p className="section-kicker">Our story. Our legacy. Our future.</p>
@@ -610,7 +632,7 @@ function Story() {
           Pan African City Alive has been part of the Bay Area cultural retail landscape since 1993. The strongest public profile shows Keisha Evans as the current owner/operator, with the shop centered on authentic African goods, cultural education, and storytelling.
         </p>
         <p>
-          This finished build turns that identity into a digital store: dense with color and objects, but organized with clear categories, product stories, events, and an easy path to visit or request pickup.
+          This preview turns that identity into a digital store: dense with color and objects, but organized with clear categories, product stories, events, and an easy path to visit or request pickup.
         </p>
         <a className="button outline" href="#visit">
           Plan your visit
@@ -692,8 +714,8 @@ function Shop({
     <section className="shop-section" id="shop">
       <div className="section-head">
         <p className="section-kicker">The store</p>
-        <h2>Fully shoppable draft, ready for final inventory.</h2>
-        <p>Products, prices, and checkout behavior are working in this build. Items marked sample should be replaced with verified inventory before accepting payment.</p>
+        <h2>Fully shoppable preview, ready for final inventory.</h2>
+        <p>Products, prices, and checkout behavior work in this preview. Items marked sample should be replaced with verified inventory before accepting payment.</p>
       </div>
       <div className="shop-controls">
         <label className="search-box">
@@ -774,11 +796,19 @@ function Events({ onRsvp }: { onRsvp: (program: Program) => void }) {
 function Gallery() {
   const gallery = [
     [image("hero-store-mask.png"), "The bright shop direction with mask centerpiece and kente side rails"],
-    [image("shop-gallery-back-wall.png"), "Gallery wall for masks, shelves, books, oils, and story cards"],
-    [image("keisha-wall-panel-crop.jpg"), "Founder story wall showing Keisha Evans and the origin narrative"],
-    [image("real-store-room.jpg"), "Supplied real store interior showing current object density"],
+    [image("mama-keisha-preview.jpg"), "Mama Keisha preview portrait for the founder story"],
+    [clientImage("real-keisha-wall.jpg"), "Supplied founder wall photo for Keisha Evans"],
+    [clientImage("real-mask-wall-wide.jpg"), "Supplied mask wall photo showing current object density"],
+    [clientImage("real-front-mask-sign.jpg"), "Supplied front display photo with Pan African City Alive store information"],
+    [clientImage("real-jewelry-case.jpg"), "Supplied jewelry case photo for the shop preview"],
+    [clientImage("real-beaded-mask.jpg"), "Supplied beaded mask and textile display"],
+    [image("event-drumming-generated.jpg"), "Generated drumming event preview image"],
+    [image("event-storytelling-generated.jpg"), "Generated storytelling event preview image"],
+    [clientImage("real-bronze-leopards.jpg"), "Supplied bronze leopard sculptures"],
+    [clientImage("real-egyptian-panel.jpg"), "Supplied Egyptian art panel"],
+    [clientImage("real-doll-basket.jpg"), "Supplied basket of handmade dolls"],
     [image("shop-shelf-oils.png"), "Warm retail shelf with oils, baskets, and mask detail"],
-    [image("product-jewelry.jpg"), "Jewelry and beadwork category image"]
+    [clientImage("real-cream-mask.jpg"), "Supplied cream mask closeup"]
   ] as const;
 
   return (
@@ -786,7 +816,7 @@ function Gallery() {
       <div className="section-head">
         <p className="section-kicker">Art gallery</p>
         <h2>The visual system is built from the room.</h2>
-        <p>Every image is either supplied, public-source supported, or generated/derived for this finished storefront direction.</p>
+        <p>Every image is either supplied, public-source supported, or generated/derived for this preview storefront direction.</p>
       </div>
       <div className="gallery-grid">
         {gallery.map(([src, alt], index) => (
@@ -839,7 +869,7 @@ function Visit() {
         </label>
         <button className="button primary" type="submit">
           <Send aria-hidden="true" size={17} />
-          Draft inquiry
+          Send inquiry
         </button>
       </form>
     </section>
@@ -867,6 +897,7 @@ function Footer() {
           <input id="newsletter-email" type="email" placeholder="Email address" />
           <button type="submit">Subscribe</button>
         </div>
+        <small>Drum ambience: "Village Drums of Freedom - Black Africa (djembe mix)" by Gerald Achee, CC BY-SA 3.0, via Wikimedia Commons.</small>
       </form>
     </footer>
   );
@@ -976,7 +1007,7 @@ function CartDrawer({
             {checkoutDone && (
               <p className="success-message">
                 <Check aria-hidden="true" size={18} />
-                Request drafted. In the live site this can connect to email, Shopify, Square, or a custom checkout.
+                Preview request saved here so you can see how pickup and invoice requests would feel.
               </p>
             )}
           </form>
@@ -985,7 +1016,7 @@ function CartDrawer({
         <div className="empty-state">
           <ShoppingBag aria-hidden="true" size={44} />
           <h3>Your bag is ready.</h3>
-          <p>Add a product from the store to test the shopping flow.</p>
+          <p>Add a product from the store to preview the shopping flow.</p>
         </div>
       )}
     </aside>
@@ -1023,7 +1054,7 @@ function RsvpModal({ done, program, onClose, onSubmit }: { done: boolean; progra
           {done && (
             <p className="success-message">
               <Check aria-hidden="true" size={18} />
-              RSVP request drafted. Final dates still need confirmation before this becomes a live booking.
+              Preview RSVP saved. Final dates still need confirmation before this becomes a live booking.
             </p>
           )}
         </form>
