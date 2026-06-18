@@ -4,3 +4,4 @@ qa/
 .vercel/
 *.zip
 .DS_Store
+.vercel
