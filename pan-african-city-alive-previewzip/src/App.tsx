@@ -306,7 +306,7 @@ function useDrumLoop(enabled: boolean) {
 }
 
 function App() {
-  const [introVisible, setIntroVisible] = useState(true);
+  const [introVisible, setIntroVisible] = useState(false);
   const [introOpening, setIntroOpening] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [cartOpen, setCartOpen] = useState(false);
