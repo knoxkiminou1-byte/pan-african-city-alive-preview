@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-label="Pan African City Alive preview mark">
+  <rect width="96" height="96" rx="14" fill="#f6ecd8"/>
+  <path d="M13 18h70v18H13z" fill="#b3241c"/>
+  <path d="M13 39h70v18H13z" fill="#151515"/>
+  <path d="M13 60h70v18H13z" fill="#1e6a45"/>
+  <circle cx="48" cy="48" r="22" fill="#d7a332"/>
+  <path d="M33 50c6-15 24-15 30 0-4 10-26 10-30 0z" fill="#f6ecd8"/>
+  <path d="M39 49h18v10H39z" fill="#151515"/>
+</svg>

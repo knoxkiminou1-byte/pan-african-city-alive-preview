@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630">
+  <defs>
+    <pattern id="kente" width="72" height="72" patternUnits="userSpaceOnUse">
+      <rect width="72" height="72" fill="#b3241c"/>
+      <path d="M0 0h72v12H0zM0 60h72v12H0z" fill="#151515"/>
+      <path d="M36 0l36 36-36 36L0 36z" fill="#d7a332"/>
+      <path d="M36 14l22 22-22 22-22-22z" fill="#1e6a45"/>
+      <path d="M0 24h72v6H0zM0 42h72v6H0z" fill="#f6ecd8"/>
+    </pattern>
+    <linearGradient id="sun" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#fff7e9"/>
+      <stop offset="0.58" stop-color="#f6ecd8"/>
+      <stop offset="1" stop-color="#e6b85d"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#sun)"/>
+  <rect width="92" height="630" fill="url(#kente)"/>
+  <rect x="1108" width="92" height="630" fill="url(#kente)"/>
+  <circle cx="885" cy="292" r="164" fill="#1e6a45" opacity=".18"/>
+  <path d="M803 170c46-64 150-60 191 0 38 56 24 182-96 234-118-52-132-178-95-234z" fill="#c89b3c" stroke="#151515" stroke-width="12"/>
+  <path d="M838 214h44v40h-44zM915 214h44v40h-44z" fill="#f6ecd8"/>
+  <path d="M859 255c13 25 64 25 78 0" fill="none" stroke="#b3241c" stroke-width="16" stroke-linecap="round"/>
+  <path d="M868 320h60v24h-60z" fill="#151515"/>
+  <path d="M820 178l34-44 28 52M976 178l-34-44-28 52" fill="#e66d2f" stroke="#151515" stroke-width="8"/>
+  <text x="150" y="188" font-family="Impact, Arial Black, sans-serif" font-size="78" fill="#5a202c">PAN AFRICAN</text>
+  <text x="150" y="270" font-family="Impact, Arial Black, sans-serif" font-size="78" fill="#1e6a45">CITY ALIVE</text>
+  <text x="154" y="332" font-family="Arial, sans-serif" font-size="30" fill="#201a18">Preview website concept for Keisha Evans's</text>
+  <text x="154" y="374" font-family="Arial, sans-serif" font-size="30" fill="#201a18">East Palo Alto cultural store.</text>
+  <text x="154" y="428" font-family="Arial, sans-serif" font-size="28" fill="#201a18">Masks, textiles, oils, books, jewelry,</text>
+  <text x="154" y="468" font-family="Arial, sans-serif" font-size="28" fill="#201a18">events, and founder storytelling.</text>
+  <rect x="154" y="518" width="326" height="58" rx="0" fill="#b3241c"/>
+  <text x="184" y="556" font-family="Arial Black, Impact, sans-serif" font-size="24" fill="#fff7e9">CLICK TO OPEN</text>
+</svg>

@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://pan-african-city-alive-preview.vercel.app/sitemap.xml
