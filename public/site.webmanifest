@@ -1,7 +1,7 @@
 {
-  "name": "Pan African City Alive Preview",
-  "short_name": "PACA Preview",
-  "description": "Preview website concept for Pan African City Alive.",
+  "name": "Pan African City Alive",
+  "short_name": "PACA Store",
+  "description": "Storefront build for Pan African City Alive.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#f6ecd8",

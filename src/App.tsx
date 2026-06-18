@@ -2,925 +2,737 @@ import {
   ArrowRight,
   BookOpen,
   CalendarDays,
+  Check,
+  CreditCard,
   ExternalLink,
-  Gem,
+  Filter,
   Heart,
-  LayoutGrid,
   Mail,
   MapPin,
   Menu,
+  Minus,
   Music2,
   PackageOpen,
-  Palette,
   Phone,
+  Plus,
   Search,
-  ShieldCheck,
+  Send,
   ShoppingBag,
   Sparkles,
-  Store,
+  Trash2,
+  User,
+  Volume2,
+  VolumeX,
   X
 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 
-type ProductKind = "mask" | "textile" | "jewelry" | "body" | "book" | "carving" | "oil" | "basket";
-type PreviewMode = "interactive" | "picture";
+type ProductCategory = "Art & Masks" | "Carvings" | "Textiles" | "Garments" | "Jewelry" | "Body Care" | "Books & Oils" | "Gifts";
+type EventKind = "legacy" | "drumming" | "storytelling" | "jewelry";
 
 interface Product {
   id: string;
   name: string;
-  category: string;
-  kind: ProductKind;
-  note: string;
-  origin: string;
-  palette: string[];
+  category: ProductCategory;
+  image: string;
+  price: number;
+  badge: string;
+  description: string;
+  detail: string;
 }
 
-interface EventItem {
+interface Program {
+  id: EventKind;
   title: string;
-  date: string;
-  venue: string;
-  note: string;
-  icon: "calendar" | "music" | "book" | "gem";
+  image: string;
+  dateLabel: string;
+  timeLabel: string;
+  location: string;
+  description: string;
 }
+
+interface Collection {
+  title: ProductCategory;
+  image: string;
+  description: string;
+}
+
+const image = (name: string) => `/images/final/${name}`;
 
 const products: Product[] = [
   {
-    id: "mask-wall",
-    name: "Gallery mask wall",
-    category: "Art",
-    kind: "mask",
-    note: "A hero wall concept for carved masks, story cards, and object-origin labels.",
-    origin: "Preview display",
-    palette: ["#d7a332", "#b3241c", "#1e6a45", "#2b6fb0"]
+    id: "painted-gallery-mask",
+    name: "Painted Gallery Mask",
+    category: "Art & Masks",
+    image: image("product-painted-mask.jpg"),
+    price: 128,
+    badge: "Sample price",
+    description: "A vivid mask display piece for a hero wall, entry shelf, or collector corner.",
+    detail: "Final inventory, origin notes, and artisan details should be confirmed before checkout is made live."
   },
   {
-    id: "mudcloth-kente",
-    name: "Kente and mudcloth folds",
+    id: "wood-carving-trio",
+    name: "Wood Carving Trio",
+    category: "Carvings",
+    image: image("product-wood-carvings.jpg"),
+    price: 84,
+    badge: "Sample price",
+    description: "A tabletop carving set inspired by the shop's dense wood-art display language.",
+    detail: "Designed for browsing and inquiry, with product-story space ready for confirmed provenance."
+  },
+  {
+    id: "kente-cloth-fold",
+    name: "Kente Cloth Fold",
     category: "Textiles",
-    kind: "textile",
-    note: "Bold fabric rails inspired by the side-panel treatment from the Andreas reference.",
-    origin: "Preview shop",
-    palette: ["#f6ecd8", "#151515", "#b3241c", "#d7a332"]
+    image: image("product-kente-fabric.jpg"),
+    price: 68,
+    badge: "Sample price",
+    description: "Bright folded cloth styling that carries the kente side-rail look into the shop.",
+    detail: "The live catalog can swap this concept image for actual photographed inventory."
   },
   {
-    id: "beadwork",
-    name: "Beaded jewelry tray",
+    id: "mudcloth-textile-bundle",
+    name: "Mudcloth Textile Bundle",
+    category: "Textiles",
+    image: image("shop-textile-lounge.png"),
+    price: 92,
+    badge: "Sample price",
+    description: "A warm textile bundle for home, display, fashion styling, and gifting.",
+    detail: "Quantity, dimensions, and material notes are intentionally left editable."
+  },
+  {
+    id: "garment-rail-edit",
+    name: "Garment Rail Edit",
+    category: "Garments",
+    image: image("product-garments.jpg"),
+    price: 74,
+    badge: "Sample price",
+    description: "A colorful apparel rail concept for garments, wraps, and wearable culture.",
+    detail: "Built so the final store can add size, color, and pickup options."
+  },
+  {
+    id: "beaded-necklace-set",
+    name: "Beaded Necklace Set",
     category: "Jewelry",
-    kind: "jewelry",
-    note: "Layered color, easy browsing, and small gift discovery for the front counter.",
-    origin: "Preview shop",
-    palette: ["#1e6a45", "#e66d2f", "#2b6fb0", "#d7a332"]
+    image: image("product-jewelry.jpg"),
+    price: 46,
+    badge: "Sample price",
+    description: "Layered beadwork photographed for a rich counter-display shopping experience.",
+    detail: "Add maker notes and care details once the final pieces are photographed."
   },
   {
-    id: "shea-black-soap",
-    name: "Shea butter and black soap",
-    category: "Body",
-    kind: "body",
-    note: "A cleaner wellness shelf for shea butter, black soap, oils, and care items.",
-    origin: "Preview shop",
-    palette: ["#f6ecd8", "#8b5a2b", "#151515", "#d7a332"]
+    id: "shea-butter-jar",
+    name: "Shea Butter Jar",
+    category: "Body Care",
+    image: image("product-shea-butter.jpg"),
+    price: 18,
+    badge: "Sample price",
+    description: "A clean body-care shelf treatment for shea butter, oils, and daily care.",
+    detail: "Ingredient and size information should be verified before a live sale."
   },
   {
-    id: "culture-books",
-    name: "Books and cultural resources",
-    category: "Books",
-    kind: "book",
-    note: "A small resource stack to connect retail with education and storytelling.",
-    origin: "Preview shop",
-    palette: ["#5a202c", "#1e6a45", "#d7a332", "#f6ecd8"]
+    id: "black-soap-stack",
+    name: "Black Soap Stack",
+    category: "Body Care",
+    image: image("product-black-soap.jpg"),
+    price: 16,
+    badge: "Sample price",
+    description: "A tactile soap stack with warm lighting and clear retail framing.",
+    detail: "This is a concept product listing until the exact inventory is confirmed."
   },
   {
-    id: "carving-table",
-    name: "Carvings and tabletop art",
-    category: "Art",
-    kind: "carving",
-    note: "A tactile center table for wood, bronze-style objects, dolls, and home goods.",
-    origin: "Preview shop",
-    palette: ["#8b4a2f", "#d7a332", "#151515", "#f6ecd8"]
+    id: "books-incense-set",
+    name: "Books & Incense Set",
+    category: "Books & Oils",
+    image: image("product-books-oils.jpg"),
+    price: 42,
+    badge: "Sample price",
+    description: "A cultural-resource bundle joining books, scent, and counter discovery.",
+    detail: "Book titles and publisher metadata should be added from the final catalog."
   },
   {
-    id: "oil-bar",
-    name: "Oil and incense bar",
-    category: "Body",
-    kind: "oil",
-    note: "Warm scent, clear labels, and a discovery bar near checkout.",
-    origin: "Preview shop",
-    palette: ["#c89b3c", "#1e6a45", "#b3241c", "#f6ecd8"]
+    id: "oil-discovery-bar",
+    name: "Oil Discovery Bar",
+    category: "Books & Oils",
+    image: image("shop-shelf-oils.png"),
+    price: 24,
+    badge: "Sample price",
+    description: "A scent-bar concept for oils, incense, and small giftable care items.",
+    detail: "The checkout flow is ready for variants once fragrance names are confirmed."
   },
   {
-    id: "basket-craft",
-    name: "Basket and gift stack",
+    id: "gallery-wall-consult",
+    name: "Gallery Wall Consultation",
+    category: "Art & Masks",
+    image: image("shop-gallery-back-wall.png"),
+    price: 150,
+    badge: "Inquiry item",
+    description: "A service-style listing for curating a home or office wall with cultural objects.",
+    detail: "This keeps higher-touch purchases in inquiry mode instead of forcing instant checkout."
+  },
+  {
+    id: "heritage-gift-bundle",
+    name: "Heritage Gift Bundle",
     category: "Gifts",
-    kind: "basket",
-    note: "A giftable stack for baskets, small home pieces, and curated bundles.",
-    origin: "Preview shop",
-    palette: ["#d9c4a1", "#a64b2a", "#5f6b45", "#151515"]
+    image: image("real-store-merch-wall.jpg"),
+    price: 58,
+    badge: "Sample price",
+    description: "A curated gift path for baskets, small art objects, jewelry, books, and oils.",
+    detail: "Final bundles can be assembled seasonally for holidays, Kwanzaa, and local events."
   }
 ];
 
-const categories = ["All", "Art", "Textiles", "Jewelry", "Body", "Books", "Gifts"];
+const collections: Collection[] = [
+  {
+    title: "Art & Masks",
+    image: image("product-painted-mask.jpg"),
+    description: "Masks, gallery walls, object stories, and collector pieces."
+  },
+  {
+    title: "Carvings",
+    image: image("product-wood-carvings.jpg"),
+    description: "Wood figures, tabletop art, ritual objects, and home display."
+  },
+  {
+    title: "Textiles",
+    image: image("product-kente-fabric.jpg"),
+    description: "Kente cloth, mudcloth, folded fabric, and textile storytelling."
+  },
+  {
+    title: "Garments",
+    image: image("product-garments.jpg"),
+    description: "Wearable culture, wraps, shirts, dresses, and statement apparel."
+  },
+  {
+    title: "Jewelry",
+    image: image("product-jewelry.jpg"),
+    description: "Beads, bracelets, necklaces, earrings, and counter treasures."
+  },
+  {
+    title: "Body Care",
+    image: image("product-shea-butter.jpg"),
+    description: "Shea butter, black soap, oils, and daily care rituals."
+  },
+  {
+    title: "Books & Oils",
+    image: image("product-books-oils.jpg"),
+    description: "Books, resources, incense, fragrance, and learning goods."
+  },
+  {
+    title: "Gifts",
+    image: image("real-store-merch-wall.jpg"),
+    description: "Curated bundles and small objects for meaningful giving."
+  }
+];
 
-const events: EventItem[] = [
+const programs: Program[] = [
   {
-    title: "Open House Celebration and Legacy Relaunch",
-    date: "Saturday, May 2, 2026",
-    venue: "Renaissance Entrepreneurship Center",
-    note: "A relaunch-style community welcome moment for the current East Palo Alto chapter.",
-    icon: "calendar"
+    id: "legacy",
+    title: "Open House & Legacy Relaunch",
+    image: image("real-store-room.jpg"),
+    dateLabel: "Next date to confirm",
+    timeLabel: "Program format ready",
+    location: "1848 Bay Road, East Palo Alto",
+    description: "A community welcome, founder-story wall, shop tour, and retail relaunch moment."
   },
   {
-    title: "Live African Drumming and Dance",
-    date: "Wednesday, March 25, 2026",
-    venue: "Pan African City Alive Performance Space",
-    note: "A performance-space signal that the store can be more than a shop.",
-    icon: "music"
+    id: "drumming",
+    title: "African Drumming & Dance",
+    image: image("hero-store-mask.png"),
+    dateLabel: "Workshop lane",
+    timeLabel: "Dates to confirm",
+    location: "Gallery / performance area",
+    description: "A low-barrier cultural program that turns the store into an active gathering space."
   },
   {
+    id: "storytelling",
     title: "African Storytelling Evening",
-    date: "Wednesday, March 25, 2026",
-    venue: "Pan African City Alive Gallery",
-    note: "Founder-story energy translated into a repeatable community event lane.",
-    icon: "book"
+    image: image("keisha-story-wall.jpg"),
+    dateLabel: "Story circle",
+    timeLabel: "Dates to confirm",
+    location: "Founder wall and gallery",
+    description: "Founder-led and guest-led stories around objects, origin, memory, and belonging."
   },
   {
-    title: "African Jewelry Making Workshop",
-    date: "Wednesday, March 25, 2026",
-    venue: "Pan African City Alive Workshop Room",
-    note: "Hands-on workshop programming that can turn visitors into participants.",
-    icon: "gem"
+    id: "jewelry",
+    title: "Jewelry Making Workshop",
+    image: image("event-jewelry-workshop-crop.jpg"),
+    dateLabel: "Hands-on class",
+    timeLabel: "Dates to confirm",
+    location: "Workshop table",
+    description: "A tactile workshop path connected to the jewelry, beadwork, and gift categories."
   }
 ];
 
-const languageCards = [
-  "Welcome home to the colors, textures, tools, and stories that keep culture alive.",
-  "For 33 years, Pan African City Alive has been more than a store. It is a room where objects speak.",
-  "Every mask, oil, book, cloth, carving, and bracelet deserves a label that tells people where to begin.",
-  "This preview keeps the richness, clears the path, and lets Keisha's founder story lead."
-];
+const categories = ["All", ...collections.map((collection) => collection.title)] as const;
+type CategoryFilter = (typeof categories)[number];
 
-const routeSteps = [
-  "Arrival",
-  "Founder Story",
-  "Feature Table",
-  "Textiles",
-  "Jewelry",
-  "Home Goods",
-  "Checkout",
-  "Workshop"
-];
+const navItems = [
+  ["Story", "#story"],
+  ["Shop", "#shop"],
+  ["Events", "#events"],
+  ["Gallery", "#gallery"],
+  ["Visit", "#visit"]
+] as const;
+
+function formatCurrency(value: number) {
+  return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(value);
+}
+
+function useDrumLoop(enabled: boolean) {
+  const audioContext = useRef<AudioContext | null>(null);
+  const timer = useRef<number | null>(null);
+
+  useEffect(() => {
+    if (!enabled) {
+      if (timer.current) window.clearInterval(timer.current);
+      timer.current = null;
+      return;
+    }
+
+    const AudioCtor = window.AudioContext || (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+    if (!AudioCtor) return;
+
+    const ctx = audioContext.current ?? new AudioCtor();
+    audioContext.current = ctx;
+    void ctx.resume();
+
+    const hit = (frequency: number, gainValue: number, delay: number, duration = 0.18) => {
+      const start = ctx.currentTime + delay;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      const filter = ctx.createBiquadFilter();
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(frequency, start);
+      osc.frequency.exponentialRampToValueAtTime(Math.max(38, frequency * 0.55), start + duration);
+      filter.type = "lowpass";
+      filter.frequency.setValueAtTime(720, start);
+      gain.gain.setValueAtTime(gainValue, start);
+      gain.gain.exponentialRampToValueAtTime(0.0001, start + duration);
+      osc.connect(filter).connect(gain).connect(ctx.destination);
+      osc.start(start);
+      osc.stop(start + duration + 0.05);
+    };
+
+    const pattern = () => {
+      hit(118, 0.085, 0);
+      hit(205, 0.032, 0.28, 0.12);
+      hit(152, 0.052, 0.58, 0.15);
+      hit(238, 0.026, 0.88, 0.12);
+      hit(124, 0.078, 1.16, 0.18);
+      hit(185, 0.038, 1.48, 0.13);
+    };
+
+    pattern();
+    timer.current = window.setInterval(pattern, 1900);
+
+    return () => {
+      if (timer.current) window.clearInterval(timer.current);
+      timer.current = null;
+    };
+  }, [enabled]);
+}
 
 function App() {
   const [introVisible, setIntroVisible] = useState(true);
   const [introOpening, setIntroOpening] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
-  const [activeCategory, setActiveCategory] = useState("All");
-  const [bagCount, setBagCount] = useState(0);
-  const [previewMode, setPreviewMode] = useState<PreviewMode>("interactive");
+  const [cartOpen, setCartOpen] = useState(false);
+  const [activeCategory, setActiveCategory] = useState<CategoryFilter>("All");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [cart, setCart] = useState<Record<string, number>>({});
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [checkoutDone, setCheckoutDone] = useState(false);
+  const [activeProgram, setActiveProgram] = useState<Program | null>(null);
+  const [rsvpDone, setRsvpDone] = useState(false);
+  const [drumsOn, setDrumsOn] = useState(false);
+
+  useDrumLoop(drumsOn);
 
   const filteredProducts = useMemo(() => {
-    if (activeCategory === "All") return products;
-    return products.filter((product) => product.category === activeCategory);
-  }, [activeCategory]);
+    const query = searchTerm.trim().toLowerCase();
+    return products.filter((product) => {
+      const matchesCategory = activeCategory === "All" || product.category === activeCategory;
+      const matchesSearch = !query || [product.name, product.category, product.description].some((value) => value.toLowerCase().includes(query));
+      return matchesCategory && matchesSearch;
+    });
+  }, [activeCategory, searchTerm]);
 
-  function openIntro() {
+  const cartItems = useMemo(
+    () =>
+      products
+        .filter((product) => cart[product.id])
+        .map((product) => ({ product, quantity: cart[product.id] })),
+    [cart]
+  );
+
+  const cartCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
+  const cartTotal = cartItems.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
+
+  function openSite() {
     if (introOpening) return;
     setIntroOpening(true);
-    window.setTimeout(() => setIntroVisible(false), 1280);
+    setDrumsOn(true);
+    window.setTimeout(() => setIntroVisible(false), 1180);
+  }
+
+  function addToCart(product: Product, quantity = 1) {
+    setCart((current) => ({ ...current, [product.id]: (current[product.id] ?? 0) + quantity }));
+    setCheckoutDone(false);
+    setCartOpen(true);
+  }
+
+  function setQuantity(productId: string, quantity: number) {
+    setCart((current) => {
+      const next = { ...current };
+      if (quantity <= 0) delete next[productId];
+      else next[productId] = quantity;
+      return next;
+    });
+  }
+
+  function handleCheckout(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setCheckoutDone(true);
+  }
+
+  function handleRsvp(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setRsvpDone(true);
   }
 
   return (
     <div className="app-shell">
-      {introVisible && <IntroOverlay isOpening={introOpening} onOpen={openIntro} />}
+      {introVisible && <IntroOverlay isOpening={introOpening} onOpen={openSite} />}
       <Header
+        cartCount={cartCount}
+        drumsOn={drumsOn}
         menuOpen={menuOpen}
-        setMenuOpen={setMenuOpen}
-        bagCount={bagCount}
-        previewMode={previewMode}
-        setPreviewMode={setPreviewMode}
+        onCart={() => setCartOpen(true)}
+        onMenu={() => setMenuOpen((value) => !value)}
+        onToggleDrums={() => setDrumsOn((value) => !value)}
       />
+      {menuOpen && <MobileNav onClose={() => setMenuOpen(false)} />}
 
       <main>
-        {previewMode === "interactive" ? (
-          <>
-        <section className="hero-section section-pad" id="top">
-          <div className="preview-ribbon enter-copy">
-            <Sparkles aria-hidden="true" size={18} />
-            <span>
-              Hey assistant user, this is a preview just showing you what it could look like. The shop
-              and booking actions are mock interactions for concept review.
-            </span>
-          </div>
-
-          <div className="hero-grid">
-            <div className="hero-copy">
-              <p className="section-label">Preview concept for Keisha Evans</p>
-              <h1>Pan African City Alive</h1>
-              <p className="hero-lede">
-                A brighter, richer digital home for the East Palo Alto cultural store: founder story,
-                authentic goods, gallery energy, workshops, and a preview shop that feels alive before
-                checkout ever turns on.
-              </p>
-              <div className="hero-actions">
-                <a className="button primary" href="#shop-preview">
-                  <ShoppingBag aria-hidden="true" size={20} />
-                  Explore preview shop
-                </a>
-                <a className="button secondary" href="#story">
-                  <BookOpen aria-hidden="true" size={20} />
-                  Read the story
-                </a>
-              </div>
-            </div>
-
-            <div className="hero-stage" aria-label="3D preview of Pan African City Alive store concept">
-              <div className="stage-card storefront-card">
-                <img src="/images/paca-storefront-reference.png" alt="Pan African City Alive storefront reference from the supplied research brief" />
-              </div>
-              <div className="stage-card mask-card">
-                <MaskSculpture open={false} label="Pan-African preview mask" />
-              </div>
-              <div className="stage-card tag-card">
-                <span>Founded</span>
-                <strong>1993</strong>
-                <small>East Palo Alto cultural retail hybrid</small>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <MetricStrip />
-
-        <section className="story-section section-pad" id="story">
-          <div className="story-media">
-            <img src="/images/paca-storefront-reference.png" alt="Storefront reference for Pan African City Alive from the research brief" />
-            <div className="photo-note">
-              <ShieldCheck aria-hidden="true" size={18} />
-              Brief-derived storefront reference
-            </div>
-          </div>
-          <div className="story-copy">
-            <p className="section-label">Founder-led retail</p>
-            <h2>Keep the cultural richness. Make the path unmistakable.</h2>
-            <p>
-              The research profile frames Pan African City Alive as a long-running Black-owned
-              African cultural retail business led by Keisha Evans. The best site strategy is not to
-              flatten the store into generic luxury. It is to sharpen what is already there:
-              heritage color, product density, founder storytelling, clear category signs, event
-              rhythm, and a real community invitation.
-            </p>
-            <div className="story-list">
-              <span>Masks</span>
-              <span>Carvings</span>
-              <span>Fabrics</span>
-              <span>Garments</span>
-              <span>Jewelry</span>
-              <span>Shea butter</span>
-              <span>Black soap</span>
-              <span>Books</span>
-              <span>Oils</span>
-            </div>
-          </div>
-        </section>
-
-        <LanguageWall />
-
-        <section className="journey-section section-pad" id="build-plan">
-          <div className="section-heading">
-            <p className="section-label">Community-boutique hybrid</p>
-            <h2>A site journey that mirrors the store journey.</h2>
-          </div>
-          <div className="route-map" aria-label="Retail journey map">
-            {routeSteps.map((step, index) => (
-              <div className="route-step" key={step}>
-                <span>{String(index + 1).padStart(2, "0")}</span>
-                <strong>{step}</strong>
-              </div>
-            ))}
-          </div>
-          <div className="layout-panels">
-            <article>
-              <Store aria-hidden="true" size={30} />
-              <h3>Arrival first</h3>
-              <p>Open with the storefront, the mask, the address, and the preview notice immediately.</p>
-            </article>
-            <article>
-              <Palette aria-hidden="true" size={30} />
-              <h3>Color with control</h3>
-              <p>Oxblood, gold, green, red, cobalt, terracotta, raffia, and cream, with no black-dominant backdrop.</p>
-            </article>
-            <article>
-              <LayoutGrid aria-hidden="true" size={30} />
-              <h3>Density that scans</h3>
-              <p>Shop categories are full and tactile, but every shelf has a label, rhythm, and reason.</p>
-            </article>
-          </div>
-        </section>
-
-        <ShopPreview
-          products={filteredProducts}
+        <Hero onShop={() => document.querySelector("#shop")?.scrollIntoView({ behavior: "smooth" })} />
+        <Story />
+        <Collections activeCategory={activeCategory} onSelect={setActiveCategory} />
+        <Shop
           activeCategory={activeCategory}
-          setActiveCategory={setActiveCategory}
-          onAdd={() => setBagCount((count) => count + 1)}
+          products={filteredProducts}
+          searchTerm={searchTerm}
+          onAdd={addToCart}
+          onCategory={setActiveCategory}
+          onSearch={setSearchTerm}
+          onSelect={setSelectedProduct}
         />
-
-        <section className="artifact-section section-pad" id="artifacts">
-          <div className="section-heading split">
-            <div>
-              <p className="section-label">Custom visual system</p>
-              <h2>3D details without hiding the goods.</h2>
-            </div>
-            <p>
-              The mask, product cards, and pattern rails are custom project assets. They are built
-              into the site so the preview works as a zip, not as a set of fragile external links.
-            </p>
-          </div>
-          <div className="artifact-grid">
-            <div className="artifact-mask">
-              <MaskSculpture open label="Open mouth mask detail" />
-            </div>
-            <div className="artifact-copy">
-              <h3>Click-to-open entrance</h3>
-              <p>
-                The first screen tells the viewer it is a preview, asks them to click, then the
-                mask mouth opens and the page reveals. It keeps the exact ritual you asked for,
-                but stays bright, colorful, and premium.
-              </p>
-              <a className="button tertiary" href="#top">
-                <ArrowRight aria-hidden="true" size={20} />
-                Replay by refreshing
-              </a>
-            </div>
-          </div>
-        </section>
-
-        <EventsSection />
-
-        <section className="peer-section section-pad" id="benchmarks">
-          <div className="section-heading">
-            <p className="section-label">Best-site lessons folded in</p>
-            <h2>Built from cultural retail patterns that already work.</h2>
-          </div>
-          <div className="benchmark-grid">
-            <BenchmarkCard title="Pan-African Connection" text="Mission, events, gallery retail, and a store that feels like a cultural room." />
-            <BenchmarkCard title="Marcus Books and Hakim's" text="Legacy, founder memory, direct signage, and public trust across generations." />
-            <BenchmarkCard title="Nubian Hueman" text="Curated marketplace logic, emerging brands, and product discovery with cultural point of view." />
-            <BenchmarkCard title="BLK MKT Vintage" text="Object density, archival wall moments, and retail as storytelling instead of simple inventory." />
-          </div>
-        </section>
-
-        <VisitSection />
-          </>
-        ) : (
-          <PictureOptionPage onAdd={() => setBagCount((count) => count + 1)} />
-        )}
+        <Events onRsvp={(program) => {
+          setActiveProgram(program);
+          setRsvpDone(false);
+        }} />
+        <Gallery />
+        <Visit />
       </main>
 
       <Footer />
-    </div>
-  );
-}
 
-function PictureOptionPage({ onAdd }: { onAdd: () => void }) {
-  const [mouthOpen, setMouthOpen] = useState(false);
-
-  return (
-    <>
-      <section className="picture-hero" id="top">
-        <img
-          className="picture-hero-bg"
-          src="/images/generated-mask-store.png"
-          alt="Generated Pan African City Alive store interior with colorful mask"
+      {selectedProduct && <ProductModal product={selectedProduct} onAdd={addToCart} onClose={() => setSelectedProduct(null)} />}
+      {cartOpen && (
+        <CartDrawer
+          checkoutDone={checkoutDone}
+          items={cartItems}
+          total={cartTotal}
+          onCheckout={handleCheckout}
+          onClose={() => setCartOpen(false)}
+          onQuantity={setQuantity}
         />
-        <div className="picture-hero-panel">
-          <p className="section-label">Option 2: picture-led preview</p>
-          <h1>Pan African City Alive</h1>
-          <p>
-            This version keeps the same SEO and structure, but leads with the generated preview
-            pictures, the real Keisha founder wall, and a more photographic store experience.
-          </p>
-          <div className="hero-actions">
-            <a className="button primary" href="#picture-board">
-              <PackageOpen aria-hidden="true" size={20} />
-              View preview board
-            </a>
-            <a className="button secondary" href="#shop-preview">
-              <ShoppingBag aria-hidden="true" size={20} />
-              View picture shop
-            </a>
-          </div>
-        </div>
-        <div className="picture-preview-note">
-          <strong>Assistant user:</strong>
-          <span>This is still a preview concept only. The store is not live.</span>
-        </div>
-      </section>
-
-      <MetricStrip />
-
-      <section className="picture-board-section section-pad" id="picture-board">
-        <div className="section-heading split">
-          <div>
-            <p className="section-label">Generated full-page direction</p>
-            <h2>The preview picture becomes option two.</h2>
-          </div>
-          <p>
-            This board is preserved as an image-led option so the client can compare the current
-            coded interpretation against the more literal generated composition.
-          </p>
-        </div>
-        <figure className="picture-board-frame">
-          <img src="/images/generated-preview-board.png" alt="Generated full page preview concept for Pan African City Alive" />
-        </figure>
-      </section>
-
-      <section className="picture-founder-section section-pad" id="story">
-        <div className="picture-founder-copy">
-          <p className="section-label">Real founder material added</p>
-          <h2>Keisha's wall should lead the story.</h2>
-          <p>
-            The supplied founder-wall photo gives the site an authentic narrative anchor: Keisha
-            Evans, the September 1993 origin, the learning curve, the perseverance, and the shop as
-            a place that helps people feel at home while learning where culture comes from.
-          </p>
-          <div className="story-list">
-            <span>Keisha Evans</span>
-            <span>Since September 1993</span>
-            <span>Founder story</span>
-            <span>Education through objects</span>
-          </div>
-        </div>
-        <div className="picture-photo-stack">
-          <img src="/images/keisha-founder-wall.jpeg" alt="Meet Keisha Evans founder wall photo" />
-          <img src="/images/paca-interior-real.jpeg" alt="Real Pan African City Alive store interior photo" />
-        </div>
-      </section>
-
-      <section className="picture-entrance-lab section-pad" id="artifacts">
-        <div className="section-heading split">
-          <div>
-            <p className="section-label">Entrance animation concept</p>
-            <h2>Closed mouth first. Open mouth after the click.</h2>
-          </div>
-          <p>
-            This simulates the generated mask with a closed-mouth overlay. Click the image and the
-            lips open away to reveal the original open-mouth picture.
-          </p>
-        </div>
-        <button
-          className={`photo-mask-demo ${mouthOpen ? "is-open" : ""}`}
-          type="button"
-          onClick={() => setMouthOpen(true)}
-          aria-label="Click the mask to open the animated mouth preview"
-        >
-          <img src="/images/generated-mask-store.png" alt="Generated mask scene with animated closed mouth overlay" />
-          <span className="demo-mouth-cover" aria-hidden="true" />
-          <span className="demo-command">Click the mask to open</span>
-        </button>
-      </section>
-
-      <section className="picture-shop-section section-pad" id="shop-preview">
-        <div className="section-heading split">
-          <div>
-            <p className="section-label">Picture shop section</p>
-            <h2>Use the generated product collage as the shop mood.</h2>
-          </div>
-          <p>
-            This is still a false shop. The imagery establishes the visual standard for masks,
-            carvings, kente, garments, jewelry, shea butter, black soap, books, oils, and incense.
-          </p>
-        </div>
-        <div className="picture-shop-grid">
-          <figure>
-            <img src="/images/generated-product-collage.png" alt="Generated product collage with masks, textiles, jewelry, shea butter, black soap, books, and oils" />
-          </figure>
-          <div className="picture-shop-copy">
-            <h3>Preview store bundle</h3>
-            <p>
-              A visual placeholder for a curated starter catalog: hero mask, textile stack,
-              jewelry tray, body-care shelf, books, incense, and home objects.
-            </p>
-            <button className="button primary" type="button" onClick={onAdd}>
-              <ShoppingBag aria-hidden="true" size={20} />
-              Add picture bundle
-            </button>
-          </div>
-        </div>
-      </section>
-
-      <EventsSection />
-      <VisitSection />
-    </>
-  );
-}
-
-function Header({
-  menuOpen,
-  setMenuOpen,
-  bagCount,
-  previewMode,
-  setPreviewMode
-}: {
-  menuOpen: boolean;
-  setMenuOpen: (open: boolean) => void;
-  bagCount: number;
-  previewMode: PreviewMode;
-  setPreviewMode: (mode: PreviewMode) => void;
-}) {
-  const links = [
-    ["Story", "#story"],
-    ["Shop", "#shop-preview"],
-    ["Events", "#events"],
-    ["Visit", "#visit"],
-    ["Build Plan", "#build-plan"]
-  ];
-
-  return (
-    <header className="site-header">
-      <a className="brand" href="#top" aria-label="Pan African City Alive preview home">
-        <span className="brand-mark" aria-hidden="true">
-          <span />
-          <span />
-          <span />
-        </span>
-        <span>Pan African City Alive</span>
-      </a>
-
-      <nav className={`site-nav ${menuOpen ? "is-open" : ""}`} aria-label="Primary navigation">
-        {links.map(([label, href]) => (
-          <a key={label} href={href} onClick={() => setMenuOpen(false)}>
-            {label}
-          </a>
-        ))}
-      </nav>
-
-      <div className="header-actions">
-        <div className="mode-switch" aria-label="Preview option switcher">
-          <button
-            type="button"
-            className={previewMode === "interactive" ? "is-active" : ""}
-            onClick={() => setPreviewMode("interactive")}
-          >
-            Option 1
-          </button>
-          <button
-            type="button"
-            className={previewMode === "picture" ? "is-active" : ""}
-            onClick={() => setPreviewMode("picture")}
-          >
-            Option 2
-          </button>
-        </div>
-        <a className="icon-button" href="#shop-preview" aria-label={`Preview bag with ${bagCount} items`}>
-          <ShoppingBag aria-hidden="true" size={20} />
-          <span>{bagCount}</span>
-        </a>
-        <button
-          className="menu-button"
-          type="button"
-          aria-label={menuOpen ? "Close navigation" : "Open navigation"}
-          onClick={() => setMenuOpen(!menuOpen)}
-        >
-          {menuOpen ? <X aria-hidden="true" size={22} /> : <Menu aria-hidden="true" size={22} />}
-        </button>
-      </div>
-    </header>
+      )}
+      {activeProgram && (
+        <RsvpModal
+          done={rsvpDone}
+          program={activeProgram}
+          onClose={() => setActiveProgram(null)}
+          onSubmit={handleRsvp}
+        />
+      )}
+    </div>
   );
 }
 
 function IntroOverlay({ isOpening, onOpen }: { isOpening: boolean; onOpen: () => void }) {
   return (
-    <div className={`intro-overlay picture-intro ${isOpening ? "is-opening" : ""}`}>
-      <img
-        className="picture-intro-image"
-        src="/images/generated-mask-store.png"
-        alt="Generated Pan African City Alive mask store preview"
-      />
-      <div className="picture-intro-scrim" aria-hidden="true" />
-      <button className="picture-mask-button" type="button" onClick={onOpen} aria-label="Click the mask to open Pan African City Alive preview">
-        <span className="closed-mouth-patch" aria-hidden="true" />
-        <span className="click-mask-command">Click the mask to open</span>
+    <div className={`intro-overlay ${isOpening ? "is-opening" : ""}`}>
+      <img className="intro-image" src={image("hero-store-mask.png")} alt="Colorful Pan African City Alive store interior with a mask centerpiece" />
+      <div className="intro-scrim" aria-hidden="true" />
+      <button className="mask-opener" type="button" aria-label="Click the mask to open Pan African City Alive" onClick={onOpen}>
+        <span className="mouth-cover" aria-hidden="true" />
+        <span className="mask-command">Click the mask to open</span>
       </button>
-      <div className="intro-copy picture-intro-copy">
-        <p>Hey assistant user, this is a preview just showing you what it could look like.</p>
-        <button className="button primary intro-cta" type="button" onClick={onOpen}>
-          <Sparkles aria-hidden="true" size={20} />
-          Click the mask to open
+      <div className="intro-panel">
+        <LogoMark />
+        <p>Assistant user: this is now the finished storefront draft. Inventory, prices, and booking actions remain demonstration data until Keisha confirms the final catalog.</p>
+        <button className="button primary" type="button" onClick={onOpen}>
+          <Sparkles aria-hidden="true" size={18} />
+          Enter the store
         </button>
       </div>
     </div>
   );
 }
 
-function MaskSculpture({ open, label }: { open: boolean; label: string }) {
+function Header({
+  cartCount,
+  drumsOn,
+  menuOpen,
+  onCart,
+  onMenu,
+  onToggleDrums
+}: {
+  cartCount: number;
+  drumsOn: boolean;
+  menuOpen: boolean;
+  onCart: () => void;
+  onMenu: () => void;
+  onToggleDrums: () => void;
+}) {
   return (
-    <svg className={`mask-sculpture ${open ? "mouth-open" : ""}`} viewBox="0 0 320 390" role="img" aria-label={label}>
-      <defs>
-        <linearGradient id="maskFace" x1="58" y1="20" x2="274" y2="350" gradientUnits="userSpaceOnUse">
-          <stop offset="0" stopColor="#f6ecd8" />
-          <stop offset="0.2" stopColor="#d7a332" />
-          <stop offset="0.48" stopColor="#e66d2f" />
-          <stop offset="0.72" stopColor="#b3241c" />
-          <stop offset="1" stopColor="#1e6a45" />
-        </linearGradient>
-        <linearGradient id="maskNose" x1="145" y1="138" x2="181" y2="248" gradientUnits="userSpaceOnUse">
-          <stop offset="0" stopColor="#2b6fb0" />
-          <stop offset="1" stopColor="#1e6a45" />
-        </linearGradient>
-        <filter id="maskShadow" x="-20%" y="-20%" width="140%" height="150%">
-          <feDropShadow dx="0" dy="18" stdDeviation="14" floodColor="#5a202c" floodOpacity="0.24" />
-        </filter>
-      </defs>
-      <g filter="url(#maskShadow)">
-        <path className="mask-crest" d="M74 87c12-43 43-67 86-67s75 24 87 67l-40 28-47-22-48 22z" fill="#1e6a45" />
-        <path d="M88 92c0-29 145-29 145 0l34 43c14 55-5 141-55 193-18 19-35 29-52 31-17-2-34-12-52-31-50-52-69-138-55-193z" fill="url(#maskFace)" stroke="#151515" strokeWidth="9" />
-        <path d="M94 112c28-24 105-28 132 0" fill="none" stroke="#f6ecd8" strokeWidth="12" strokeLinecap="round" />
-        <path d="M102 136l43-20 15 55-38 10z" fill="#f6ecd8" stroke="#151515" strokeWidth="7" />
-        <path d="M218 136l-43-20-15 55 38 10z" fill="#f6ecd8" stroke="#151515" strokeWidth="7" />
-        <path d="M117 152c9 10 22 10 31 0" fill="none" stroke="#151515" strokeWidth="8" strokeLinecap="round" />
-        <path d="M172 152c9 10 22 10 31 0" fill="none" stroke="#151515" strokeWidth="8" strokeLinecap="round" />
-        <path d="M151 171c-7 31-12 58-17 82 18 12 34 13 52 0-5-24-10-51-17-82z" fill="url(#maskNose)" stroke="#151515" strokeWidth="7" />
-        <path className="mouth-top" d="M120 276c27-24 53-24 80 0-17 12-63 12-80 0z" fill="#151515" />
-        <path className="mouth-bottom" d="M121 286c25 22 54 22 78 0-13 35-65 35-78 0z" fill="#5a202c" stroke="#151515" strokeWidth="7" />
-        <path d="M73 145l-36 24 25 42 30-22z" fill="#b3241c" stroke="#151515" strokeWidth="7" />
-        <path d="M247 145l36 24-25 42-30-22z" fill="#b3241c" stroke="#151515" strokeWidth="7" />
-        <path d="M65 215l32 19-8 62-39-34zM255 215l-32 19 8 62 39-34z" fill="#d7a332" stroke="#151515" strokeWidth="7" />
-        <path d="M105 324c33 33 77 33 110 0" fill="none" stroke="#f6ecd8" strokeWidth="8" strokeLinecap="round" />
-        <path d="M160 22v70M128 34l32 58 32-58" fill="none" stroke="#d7a332" strokeWidth="9" strokeLinecap="round" strokeLinejoin="round" />
-        <circle cx="99" cy="235" r="11" fill="#2b6fb0" stroke="#151515" strokeWidth="6" />
-        <circle cx="221" cy="235" r="11" fill="#2b6fb0" stroke="#151515" strokeWidth="6" />
-        <path d="M78 84l27 33M242 84l-27 33" stroke="#e66d2f" strokeWidth="12" strokeLinecap="round" />
-      </g>
+    <>
+      <div className="top-strip">
+        <span>Since 1993</span>
+        <span>Serving the Bay Area & beyond</span>
+        <span>Culture</span>
+        <span>Community</span>
+        <span>Commerce</span>
+      </div>
+      <header className="site-header">
+        <a className="brand" href="#top" aria-label="Pan African City Alive home">
+          <LogoMark />
+          <span>
+            Pan African
+            <strong>City Alive</strong>
+          </span>
+        </a>
+        <nav className="site-nav" aria-label="Primary navigation">
+          {navItems.map(([label, href]) => (
+            <a key={label} href={href}>{label}</a>
+          ))}
+        </nav>
+        <div className="header-actions">
+          <button className="icon-action text-action" type="button" onClick={onToggleDrums} aria-label={drumsOn ? "Turn drum ambience off" : "Turn drum ambience on"}>
+            {drumsOn ? <Volume2 aria-hidden="true" size={18} /> : <VolumeX aria-hidden="true" size={18} />}
+            <span>{drumsOn ? "Drums on" : "Drums off"}</span>
+          </button>
+          <button className="icon-action cart-action" type="button" onClick={onCart} aria-label={`Open bag with ${cartCount} items`}>
+            <ShoppingBag aria-hidden="true" size={20} />
+            <span>{cartCount}</span>
+          </button>
+          <button className="icon-action menu-action" type="button" onClick={onMenu} aria-label={menuOpen ? "Close navigation" : "Open navigation"}>
+            {menuOpen ? <X aria-hidden="true" size={22} /> : <Menu aria-hidden="true" size={22} />}
+          </button>
+        </div>
+      </header>
+    </>
+  );
+}
+
+function MobileNav({ onClose }: { onClose: () => void }) {
+  return (
+    <nav className="mobile-nav" aria-label="Mobile navigation">
+      {navItems.map(([label, href]) => (
+        <a key={label} href={href} onClick={onClose}>{label}</a>
+      ))}
+    </nav>
+  );
+}
+
+function LogoMark() {
+  return (
+    <svg className="logo-mark" viewBox="0 0 100 100" role="img" aria-label="Pan-African red black and green symbol">
+      <path d="M20 56a30 30 0 0 1 60 0" fill="none" stroke="#B3241C" strokeWidth="9" strokeLinecap="round" />
+      <path d="M29 56a21 21 0 0 1 42 0" fill="none" stroke="#151515" strokeWidth="9" strokeLinecap="round" />
+      <path d="M38 56a12 12 0 0 1 24 0" fill="none" stroke="#1E6A45" strokeWidth="9" strokeLinecap="round" />
+      <path d="M50 56v25" stroke="#201A18" strokeWidth="8" strokeLinecap="round" />
+      <circle cx="50" cy="53" r="10" fill="#F6ECD8" stroke="#201A18" strokeWidth="6" />
+      <path d="M50 10c7 12 14 20 25 25-11 5-18 13-25 25-7-12-14-20-25-25 11-5 18-13 25-25z" fill="#D7A332" opacity=".18" />
     </svg>
   );
 }
 
-function MetricStrip() {
-  const metrics = [
-    ["Founded", "1993"],
-    ["Current hub", "1848 Bay Road"],
-    ["Core mix", "Art, textiles, body care"],
-    ["Site mode", "Preview only"]
-  ];
+function Hero({ onShop }: { onShop: () => void }) {
   return (
-    <section className="metric-strip" aria-label="Pan African City Alive preview facts">
-      {metrics.map(([label, value]) => (
-        <div key={label}>
-          <span>{label}</span>
-          <strong>{value}</strong>
+    <section className="hero" id="top">
+      <div className="hero-copy">
+        <p className="hero-welcome">Welcome to</p>
+        <h1>Pan African City Alive</h1>
+        <p className="hero-tagline">Culture. Community. Commerce.</p>
+        <p className="hero-text">
+          A Black-owned African cultural retail store and community gathering place in East Palo Alto, led by Keisha Evans and rooted in authentic goods, story, and connection.
+        </p>
+        <div className="hero-actions">
+          <button className="button primary" type="button" onClick={onShop}>
+            <ShoppingBag aria-hidden="true" size={19} />
+            Shop the store
+          </button>
+          <a className="button secondary" href="#story">
+            <User aria-hidden="true" size={19} />
+            Meet Keisha
+          </a>
         </div>
-      ))}
+        <div className="fact-row" aria-label="Store facts">
+          <span><CalendarDays aria-hidden="true" size={18} /> Founded 1993</span>
+          <span><User aria-hidden="true" size={18} /> Keisha Evans</span>
+          <span><MapPin aria-hidden="true" size={18} /> 1848 Bay Road</span>
+        </div>
+      </div>
+      <div className="hero-media">
+        <img src={image("hero-mask-closeup.png")} alt="Colorful African mask centerpiece inside a bright cultural store" />
+        <div className="launch-panel">
+          <strong>Storefront Build</strong>
+          <span>Full shopping flow, event RSVP, founder story, gallery, visit path, and launch-ready SEO foundation.</span>
+          <small>Live commerce data is marked where it still needs confirmation.</small>
+        </div>
+      </div>
     </section>
   );
 }
 
-function LanguageWall() {
+function Story() {
   return (
-    <section className="language-wall section-pad" aria-label="Preview language entering the screen">
-      <div className="section-heading">
-        <p className="section-label">Language as it enters</p>
-        <h2>Sample copy moments for the first screen and scroll.</h2>
+    <section className="story-section" id="story">
+      <div className="story-photo">
+        <img src={image("keisha-public-portrait.jpg")} alt="Keisha Evans smiling inside Pan African City Alive" />
       </div>
-      <div className="language-grid">
-        {languageCards.map((text, index) => (
-          <article className="language-card" key={text} style={{ animationDelay: `${index * 90}ms` }}>
-            <span>{String(index + 1).padStart(2, "0")}</span>
-            <p>{text}</p>
-          </article>
+      <div className="story-copy">
+        <p className="section-kicker">Our story. Our legacy. Our future.</p>
+        <h2>Keisha Evans keeps the room alive.</h2>
+        <p>
+          Pan African City Alive has been part of the Bay Area cultural retail landscape since 1993. The strongest public profile shows Keisha Evans as the current owner/operator, with the shop centered on authentic African goods, cultural education, and storytelling.
+        </p>
+        <p>
+          This finished build turns that identity into a digital store: dense with color and objects, but organized with clear categories, product stories, events, and an easy path to visit or request pickup.
+        </p>
+        <a className="button outline" href="#visit">
+          Plan your visit
+          <ArrowRight aria-hidden="true" size={18} />
+        </a>
+      </div>
+      <div className="value-strip" aria-label="Brand values">
+        <article>
+          <BookOpen aria-hidden="true" />
+          <strong>Heritage</strong>
+          <span>Rooted in African traditions and ancestral wisdom.</span>
+        </article>
+        <article>
+          <Heart aria-hidden="true" />
+          <strong>Community</strong>
+          <span>A gathering place for learning and healing.</span>
+        </article>
+        <article>
+          <Sparkles aria-hidden="true" />
+          <strong>Empowerment</strong>
+          <span>Supporting Black business and creative expression.</span>
+        </article>
+        <article>
+          <PackageOpen aria-hidden="true" />
+          <strong>Legacy</strong>
+          <span>Building a lasting impact for future generations.</span>
+        </article>
+      </div>
+    </section>
+  );
+}
+
+function Collections({ activeCategory, onSelect }: { activeCategory: CategoryFilter; onSelect: (category: CategoryFilter) => void }) {
+  return (
+    <section className="collections-section" aria-label="Shop collections">
+      <div className="section-head inline">
+        <div>
+          <p className="section-kicker">Shop our collections</p>
+          <h2>Browse the store by room, shelf, and story.</h2>
+        </div>
+        <a href="#shop">View all products <ArrowRight aria-hidden="true" size={18} /></a>
+      </div>
+      <div className="collection-rail">
+        {collections.map((collection) => (
+          <button
+            key={collection.title}
+            className={`collection-card ${activeCategory === collection.title ? "is-active" : ""}`}
+            type="button"
+            onClick={() => onSelect(collection.title)}
+          >
+            <img src={collection.image} alt="" />
+            <span>{collection.title}</span>
+            <small>{collection.description}</small>
+          </button>
         ))}
       </div>
     </section>
   );
 }
 
-function ShopPreview({
-  products,
+function Shop({
   activeCategory,
-  setActiveCategory,
-  onAdd
+  products,
+  searchTerm,
+  onAdd,
+  onCategory,
+  onSearch,
+  onSelect
 }: {
+  activeCategory: CategoryFilter;
   products: Product[];
-  activeCategory: string;
-  setActiveCategory: (category: string) => void;
-  onAdd: () => void;
+  searchTerm: string;
+  onAdd: (product: Product) => void;
+  onCategory: (category: CategoryFilter) => void;
+  onSearch: (value: string) => void;
+  onSelect: (product: Product) => void;
 }) {
   return (
-    <section className="shop-section section-pad" id="shop-preview">
-      <div className="section-heading split">
-        <div>
-          <p className="section-label">False shop section</p>
-          <h2>A preview shop with real category logic.</h2>
-        </div>
-        <p>
-          These are concept products and custom visuals, not live inventory or checkout. The point is
-          to make the future store feel shoppable before a catalog is connected.
-        </p>
+    <section className="shop-section" id="shop">
+      <div className="section-head">
+        <p className="section-kicker">The store</p>
+        <h2>Fully shoppable draft, ready for final inventory.</h2>
+        <p>Products, prices, and checkout behavior are working in this build. Items marked sample should be replaced with verified inventory before accepting payment.</p>
       </div>
-
-      <div className="shop-toolbar" aria-label="Shop preview filters">
-        <div className="search-pill">
+      <div className="shop-controls">
+        <label className="search-box">
           <Search aria-hidden="true" size={18} />
-          <span>Search preview goods</span>
-        </div>
-        <div className="category-tabs">
+          <input value={searchTerm} onChange={(event) => onSearch(event.target.value)} placeholder="Search masks, oils, books..." />
+        </label>
+        <div className="filter-row" aria-label="Product filters">
+          <Filter aria-hidden="true" size={18} />
           {categories.map((category) => (
             <button
               key={category}
-              type="button"
-              data-testid={`filter-${category.toLowerCase()}`}
               className={activeCategory === category ? "is-active" : ""}
-              onClick={() => setActiveCategory(category)}
+              type="button"
+              onClick={() => onCategory(category)}
             >
               {category}
             </button>
           ))}
         </div>
       </div>
-
       <div className="product-grid">
         {products.map((product) => (
-          <ProductCard key={product.id} product={product} onAdd={onAdd} />
-        ))}
-      </div>
-    </section>
-  );
-}
-
-function ProductCard({ product, onAdd }: { product: Product; onAdd: () => void }) {
-  return (
-    <article className="product-card" data-testid={`product-${product.id}`}>
-      <div className="product-art">
-        <ProductArt product={product} />
-      </div>
-      <div className="product-body">
-        <div className="product-meta">
-          <span>{product.category}</span>
-          <span>{product.origin}</span>
-        </div>
-        <h3>{product.name}</h3>
-        <p>{product.note}</p>
-        <button className="button product-button" type="button" data-testid={`add-${product.id}`} onClick={onAdd}>
-          <ShoppingBag aria-hidden="true" size={18} />
-          Add to preview bag
-        </button>
-      </div>
-    </article>
-  );
-}
-
-function ProductArt({ product }: { product: Product }) {
-  const [a, b, c, d] = product.palette;
-  const grad = `grad-${product.id}`;
-
-  if (product.kind === "mask") {
-    return (
-      <svg viewBox="0 0 420 300" role="img" aria-label={product.name}>
-        <defs>
-          <linearGradient id={grad} x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0" stopColor={a} />
-            <stop offset="1" stopColor={b} />
-          </linearGradient>
-        </defs>
-        <rect width="420" height="300" rx="8" fill="#f6ecd8" />
-        <path d="M30 34h360v232H30z" fill={c} opacity=".15" />
-        {[0, 1, 2].map((i) => (
-          <g key={i} transform={`translate(${82 + i * 92} 48)`}>
-            <path d="M44 0c45 28 51 117 0 171C-7 117-1 28 44 0z" fill={i === 1 ? `url(#${grad})` : d} stroke="#151515" strokeWidth="7" />
-            <path d="M18 63h20M50 63h20" stroke="#151515" strokeWidth="7" strokeLinecap="round" />
-            <path d="M28 122c10 10 22 10 32 0" fill="none" stroke="#151515" strokeWidth="7" strokeLinecap="round" />
-          </g>
-        ))}
-      </svg>
-    );
-  }
-
-  if (product.kind === "textile") {
-    return (
-      <svg viewBox="0 0 420 300" role="img" aria-label={product.name}>
-        <rect width="420" height="300" rx="8" fill={a} />
-        {[0, 1, 2, 3, 4].map((row) =>
-          [0, 1, 2, 3, 4, 5].map((col) => (
-            <g key={`${row}-${col}`} transform={`translate(${col * 70} ${row * 60})`}>
-              <rect width="70" height="60" fill={(row + col) % 2 ? b : c} />
-              <path d="M35 5l28 25-28 25L7 30z" fill={(row + col) % 2 ? d : a} stroke="#151515" strokeWidth="2" />
-              <path d="M0 0h70M0 60h70M0 30h70" stroke="#f6ecd8" strokeWidth="3" />
-            </g>
-          ))
-        )}
-      </svg>
-    );
-  }
-
-  if (product.kind === "jewelry") {
-    return (
-      <svg viewBox="0 0 420 300" role="img" aria-label={product.name}>
-        <rect width="420" height="300" rx="8" fill="#fff7e9" />
-        <ellipse cx="210" cy="158" rx="154" ry="82" fill={a} opacity=".16" />
-        {[0, 1, 2].map((ring) => (
-          <ellipse key={ring} cx="210" cy="146" rx={132 - ring * 32} ry={60 - ring * 12} fill="none" stroke={[a, b, c][ring]} strokeWidth="16" />
-        ))}
-        {[...Array(18)].map((_, i) => (
-          <circle key={i} cx={70 + i * 16} cy={218 + Math.sin(i) * 16} r="8" fill={[a, b, c, d][i % 4]} />
-        ))}
-      </svg>
-    );
-  }
-
-  if (product.kind === "body") {
-    return (
-      <svg viewBox="0 0 420 300" role="img" aria-label={product.name}>
-        <rect width="420" height="300" rx="8" fill="#f6ecd8" />
-        <rect x="50" y="188" width="320" height="32" fill="#d9c4a1" />
-        {[0, 1, 2].map((i) => (
-          <g key={i} transform={`translate(${84 + i * 88} 80)`}>
-            <rect x="0" y="38" width="56" height="82" rx="8" fill={i === 1 ? b : a} stroke="#151515" strokeWidth="6" />
-            <rect x="9" y="16" width="38" height="28" fill={d} stroke="#151515" strokeWidth="5" />
-            <ellipse cx="28" cy="120" rx="37" ry="12" fill="#151515" opacity=".15" />
-          </g>
-        ))}
-        <path d="M258 188c12-44 82-45 96 0z" fill={c} stroke="#151515" strokeWidth="6" />
-      </svg>
-    );
-  }
-
-  if (product.kind === "book") {
-    return (
-      <svg viewBox="0 0 420 300" role="img" aria-label={product.name}>
-        <rect width="420" height="300" rx="8" fill="#fff7e9" />
-        {[0, 1, 2, 3].map((i) => (
-          <g key={i} transform={`translate(${82 + i * 58} ${64 + i * 9}) rotate(${i * -3})`}>
-            <rect width="78" height="128" rx="4" fill={[a, b, c, d][i]} stroke="#151515" strokeWidth="6" />
-            <rect x="16" y="24" width="46" height="8" fill="#f6ecd8" />
-            <rect x="16" y="42" width="36" height="8" fill="#f6ecd8" />
-          </g>
-        ))}
-        <path d="M70 230h280" stroke="#151515" strokeWidth="8" strokeLinecap="round" />
-      </svg>
-    );
-  }
-
-  if (product.kind === "carving") {
-    return (
-      <svg viewBox="0 0 420 300" role="img" aria-label={product.name}>
-        <rect width="420" height="300" rx="8" fill="#f6ecd8" />
-        <path d="M104 224h212" stroke="#151515" strokeWidth="10" strokeLinecap="round" />
-        <path d="M144 94c36-52 96-52 132 0l-34 130h-64z" fill={a} stroke="#151515" strokeWidth="7" />
-        <path d="M184 116h20M216 116h20" stroke="#151515" strokeWidth="7" strokeLinecap="round" />
-        <path d="M198 162c11 10 23 10 34 0" fill="none" stroke="#151515" strokeWidth="7" strokeLinecap="round" />
-        <circle cx="108" cy="178" r="34" fill={b} stroke="#151515" strokeWidth="7" />
-        <circle cx="312" cy="178" r="34" fill={c} stroke="#151515" strokeWidth="7" />
-      </svg>
-    );
-  }
-
-  if (product.kind === "oil") {
-    return (
-      <svg viewBox="0 0 420 300" role="img" aria-label={product.name}>
-        <rect width="420" height="300" rx="8" fill="#fff7e9" />
-        {[0, 1, 2, 3, 4].map((i) => (
-          <g key={i} transform={`translate(${66 + i * 58} ${75 + (i % 2) * 18})`}>
-            <path d="M24 0h22l8 42v102H16V42z" fill={[a, b, c, d][i % 4]} stroke="#151515" strokeWidth="6" />
-            <rect x="13" y="74" width="44" height="30" fill="#f6ecd8" stroke="#151515" strokeWidth="5" />
-          </g>
-        ))}
-        <path d="M60 244h300" stroke="#151515" strokeWidth="7" strokeLinecap="round" />
-      </svg>
-    );
-  }
-
-  return (
-    <svg viewBox="0 0 420 300" role="img" aria-label={product.name}>
-      <rect width="420" height="300" rx="8" fill="#f6ecd8" />
-      <ellipse cx="210" cy="234" rx="140" ry="30" fill="#151515" opacity=".15" />
-      <path d="M96 148c42 82 186 82 228 0l-24 78H120z" fill={a} stroke="#151515" strokeWidth="7" />
-      <path d="M96 148c42-76 186-76 228 0-42 32-186 32-228 0z" fill={b} stroke="#151515" strokeWidth="7" />
-      <path d="M144 136c25-26 107-26 132 0" fill="none" stroke={c} strokeWidth="12" strokeLinecap="round" />
-      <path d="M122 178h176M134 205h152" stroke={d} strokeWidth="8" strokeLinecap="round" />
-    </svg>
-  );
-}
-
-function EventsSection() {
-  return (
-    <section className="events-section section-pad" id="events">
-      <div className="section-heading split">
-        <div>
-          <p className="section-label">Events and culture</p>
-          <h2>Programming becomes part of the store's SEO story.</h2>
-        </div>
-        <p>
-          The official event list visible in research showed a 2026 relaunch celebration plus
-          drumming, storytelling, and jewelry workshop modules. Since those listed dates are now
-          before June 18, 2026, this preview frames them as relaunch program references.
-        </p>
-      </div>
-      <div className="event-grid">
-        {events.map((event) => (
-          <article className="event-card" key={event.title}>
-            <EventIcon type={event.icon} />
-            <span>{event.date}</span>
-            <h3>{event.title}</h3>
-            <p>{event.note}</p>
-            <small>{event.venue}</small>
+          <article className="product-card" key={product.id}>
+            <button className="product-image" type="button" onClick={() => onSelect(product)}>
+              <img src={product.image} alt={product.name} />
+              <span>{product.badge}</span>
+            </button>
+            <div className="product-info">
+              <small>{product.category}</small>
+              <h3>{product.name}</h3>
+              <p>{product.description}</p>
+              <div className="product-footer">
+                <strong>{formatCurrency(product.price)}</strong>
+                <button className="button mini" type="button" onClick={() => onAdd(product)}>
+                  <ShoppingBag aria-hidden="true" size={16} />
+                  Add
+                </button>
+              </div>
+            </div>
           </article>
         ))}
       </div>
@@ -928,61 +740,108 @@ function EventsSection() {
   );
 }
 
-function EventIcon({ type }: { type: EventItem["icon"] }) {
-  const size = 26;
-  if (type === "music") return <Music2 aria-hidden="true" size={size} />;
-  if (type === "book") return <BookOpen aria-hidden="true" size={size} />;
-  if (type === "gem") return <Gem aria-hidden="true" size={size} />;
-  return <CalendarDays aria-hidden="true" size={size} />;
-}
-
-function BenchmarkCard({ title, text }: { title: string; text: string }) {
+function Events({ onRsvp }: { onRsvp: (program: Program) => void }) {
   return (
-    <article className="benchmark-card">
-      <Heart aria-hidden="true" size={24} />
-      <h3>{title}</h3>
-      <p>{text}</p>
-    </article>
+    <section className="events-section" id="events">
+      <div className="section-head inline">
+        <div>
+          <p className="section-kicker">Events & community experiences</p>
+          <h2>Programming that turns retail into gathering.</h2>
+        </div>
+        <p>Public 2026 listings show a relaunch and cultural programming direction. These modules are ready for the next confirmed dates.</p>
+      </div>
+      <div className="events-grid">
+        {programs.map((program) => (
+          <article className="event-card" key={program.id}>
+            <img src={program.image} alt="" />
+            <div>
+              <span>{program.dateLabel}</span>
+              <h3>{program.title}</h3>
+              <p>{program.description}</p>
+              <small>{program.timeLabel} · {program.location}</small>
+              <button className="button event-button" type="button" onClick={() => onRsvp(program)}>
+                <CalendarDays aria-hidden="true" size={17} />
+                Request a seat
+              </button>
+            </div>
+          </article>
+        ))}
+      </div>
+    </section>
   );
 }
 
-function VisitSection() {
+function Gallery() {
+  const gallery = [
+    [image("hero-store-mask.png"), "The bright shop direction with mask centerpiece and kente side rails"],
+    [image("shop-gallery-back-wall.png"), "Gallery wall for masks, shelves, books, oils, and story cards"],
+    [image("keisha-wall-panel-crop.jpg"), "Founder story wall showing Keisha Evans and the origin narrative"],
+    [image("real-store-room.jpg"), "Supplied real store interior showing current object density"],
+    [image("shop-shelf-oils.png"), "Warm retail shelf with oils, baskets, and mask detail"],
+    [image("product-jewelry.jpg"), "Jewelry and beadwork category image"]
+  ] as const;
+
   return (
-    <section className="visit-section section-pad" id="visit">
-      <div className="visit-panel">
-        <div>
-          <p className="section-label">Visit and connect</p>
-          <h2>Make the next action obvious.</h2>
-          <p>
-            This preview keeps contact details visible, avoids pretending the shop is live, and gives
-            a clear path for the next phase: confirm inventory, hours, photography, events, and checkout.
-          </p>
-        </div>
-        <div className="contact-stack" aria-label="Contact details">
-          <a href="https://www.google.com/maps/search/?api=1&query=1848%20Bay%20Road%2C%20East%20Palo%20Alto%2C%20CA%2094303" target="_blank" rel="noreferrer">
-            <MapPin aria-hidden="true" size={22} />
-            1848 Bay Road, East Palo Alto, CA 94303
-          </a>
-          <a href="tel:+16506305274">
-            <Phone aria-hidden="true" size={22} />
-            (650) 630-5274
-          </a>
-          <a href="mailto:panafricancity@gmail.com">
-            <Mail aria-hidden="true" size={22} />
-            panafricancity@gmail.com
-          </a>
-        </div>
-        <div className="visit-actions">
-          <a className="button primary" href="https://www.panafricancityalive.com/" target="_blank" rel="noreferrer">
-            <ExternalLink aria-hidden="true" size={20} />
-            Official site
-          </a>
-          <a className="button secondary" href="https://www.facebook.com/panafricancityalive/" target="_blank" rel="noreferrer">
-            <ExternalLink aria-hidden="true" size={20} />
-            Facebook
-          </a>
-        </div>
+    <section className="gallery-section" id="gallery">
+      <div className="section-head">
+        <p className="section-kicker">Art gallery</p>
+        <h2>The visual system is built from the room.</h2>
+        <p>Every image is either supplied, public-source supported, or generated/derived for this finished storefront direction.</p>
       </div>
+      <div className="gallery-grid">
+        {gallery.map(([src, alt], index) => (
+          <img key={src} className={index === 0 ? "wide" : ""} src={src} alt={alt} />
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function Visit() {
+  return (
+    <section className="visit-section" id="visit">
+      <div className="visit-copy">
+        <p className="section-kicker">Come visit us</p>
+        <h2>Experience the culture in person.</h2>
+        <p>Current public materials point to 1848 Bay Road in East Palo Alto as the clearest current location. Current hours should be confirmed by phone before visiting.</p>
+      </div>
+      <div className="visit-card">
+        <a href="https://www.google.com/maps/search/?api=1&query=1848%20Bay%20Road%2C%20East%20Palo%20Alto%2C%20CA%2094303" target="_blank" rel="noreferrer">
+          <MapPin aria-hidden="true" />
+          1848 Bay Road, East Palo Alto, CA 94303
+        </a>
+        <a href="tel:+16506305274">
+          <Phone aria-hidden="true" />
+          (650) 630-5274
+        </a>
+        <a href="mailto:panafricancity@gmail.com">
+          <Mail aria-hidden="true" />
+          panafricancity@gmail.com
+        </a>
+        <a href="https://www.panafricancityalive.com/" target="_blank" rel="noreferrer">
+          <ExternalLink aria-hidden="true" />
+          Official website
+        </a>
+      </div>
+      <form className="contact-form" onSubmit={(event) => event.preventDefault()}>
+        <h3>Ask about a visit, event, or item</h3>
+        <label>
+          Name
+          <input required placeholder="Your name" />
+        </label>
+        <label>
+          Email
+          <input required type="email" placeholder="you@example.com" />
+        </label>
+        <label>
+          Message
+          <textarea rows={4} placeholder="Tell Keisha what you are looking for..." />
+        </label>
+        <button className="button primary" type="submit">
+          <Send aria-hidden="true" size={17} />
+          Draft inquiry
+        </button>
+      </form>
     </section>
   );
 }
@@ -990,19 +849,186 @@ function VisitSection() {
 function Footer() {
   return (
     <footer className="site-footer">
-      <div>
-        <strong>Pan African City Alive Preview</strong>
-        <p>
-          A concept site for review only. Product cards, cart state, dates, and calls to action are
-          preview scaffolding until the store confirms live inventory and operations.
-        </p>
+      <div className="footer-brand">
+        <LogoMark />
+        <div>
+          <strong>Pan African City Alive</strong>
+          <span>Culture is our foundation. Community is our purpose. Legacy is our promise.</span>
+        </div>
       </div>
       <div className="footer-links">
-        <a href="#top">Top</a>
-        <a href="#shop-preview">Shop preview</a>
-        <a href="#visit">Visit</a>
+        {navItems.map(([label, href]) => (
+          <a key={label} href={href}>{label}</a>
+        ))}
       </div>
+      <form className="newsletter" onSubmit={(event) => event.preventDefault()}>
+        <label htmlFor="newsletter-email">Stay connected</label>
+        <div>
+          <input id="newsletter-email" type="email" placeholder="Email address" />
+          <button type="submit">Subscribe</button>
+        </div>
+      </form>
     </footer>
+  );
+}
+
+function ProductModal({ product, onAdd, onClose }: { product: Product; onAdd: (product: Product) => void; onClose: () => void }) {
+  return (
+    <div className="modal-backdrop" role="presentation">
+      <article className="product-modal" role="dialog" aria-modal="true" aria-label={product.name}>
+        <button className="close-button" type="button" onClick={onClose} aria-label="Close product details">
+          <X aria-hidden="true" />
+        </button>
+        <img src={product.image} alt={product.name} />
+        <div>
+          <small>{product.category} · {product.badge}</small>
+          <h2>{product.name}</h2>
+          <p>{product.description}</p>
+          <p>{product.detail}</p>
+          <strong>{formatCurrency(product.price)}</strong>
+          <button className="button primary" type="button" onClick={() => onAdd(product)}>
+            <ShoppingBag aria-hidden="true" size={18} />
+            Add to bag
+          </button>
+        </div>
+      </article>
+    </div>
+  );
+}
+
+function CartDrawer({
+  checkoutDone,
+  items,
+  total,
+  onCheckout,
+  onClose,
+  onQuantity
+}: {
+  checkoutDone: boolean;
+  items: { product: Product; quantity: number }[];
+  total: number;
+  onCheckout: (event: FormEvent<HTMLFormElement>) => void;
+  onClose: () => void;
+  onQuantity: (productId: string, quantity: number) => void;
+}) {
+  return (
+    <aside className="cart-drawer" aria-label="Shopping bag">
+      <div className="drawer-head">
+        <div>
+          <span>Preview bag</span>
+          <h2>Your order</h2>
+        </div>
+        <button className="close-button" type="button" onClick={onClose} aria-label="Close bag">
+          <X aria-hidden="true" />
+        </button>
+      </div>
+      {items.length ? (
+        <>
+          <div className="cart-items">
+            {items.map(({ product, quantity }) => (
+              <article className="cart-item" key={product.id}>
+                <img src={product.image} alt="" />
+                <div>
+                  <strong>{product.name}</strong>
+                  <span>{formatCurrency(product.price)}</span>
+                  <div className="quantity-row">
+                    <button type="button" onClick={() => onQuantity(product.id, quantity - 1)} aria-label={`Decrease ${product.name}`}>
+                      <Minus aria-hidden="true" size={14} />
+                    </button>
+                    <span>{quantity}</span>
+                    <button type="button" onClick={() => onQuantity(product.id, quantity + 1)} aria-label={`Increase ${product.name}`}>
+                      <Plus aria-hidden="true" size={14} />
+                    </button>
+                    <button type="button" onClick={() => onQuantity(product.id, 0)} aria-label={`Remove ${product.name}`}>
+                      <Trash2 aria-hidden="true" size={14} />
+                    </button>
+                  </div>
+                </div>
+              </article>
+            ))}
+          </div>
+          <div className="cart-total">
+            <span>Estimated sample total</span>
+            <strong>{formatCurrency(total)}</strong>
+          </div>
+          <form className="checkout-form" onSubmit={onCheckout}>
+            <h3>Request pickup / invoice</h3>
+            <label>
+              Name
+              <input required placeholder="Your name" />
+            </label>
+            <label>
+              Email
+              <input required type="email" placeholder="you@example.com" />
+            </label>
+            <label>
+              Pickup date
+              <input type="date" />
+            </label>
+            <label>
+              Notes
+              <textarea rows={3} placeholder="Ask about sizes, origin, availability..." />
+            </label>
+            <button className="button primary" type="submit">
+              <CreditCard aria-hidden="true" size={18} />
+              Submit request
+            </button>
+            {checkoutDone && (
+              <p className="success-message">
+                <Check aria-hidden="true" size={18} />
+                Request drafted. In the live site this can connect to email, Shopify, Square, or a custom checkout.
+              </p>
+            )}
+          </form>
+        </>
+      ) : (
+        <div className="empty-state">
+          <ShoppingBag aria-hidden="true" size={44} />
+          <h3>Your bag is ready.</h3>
+          <p>Add a product from the store to test the shopping flow.</p>
+        </div>
+      )}
+    </aside>
+  );
+}
+
+function RsvpModal({ done, program, onClose, onSubmit }: { done: boolean; program: Program; onClose: () => void; onSubmit: (event: FormEvent<HTMLFormElement>) => void }) {
+  return (
+    <div className="modal-backdrop" role="presentation">
+      <article className="rsvp-modal" role="dialog" aria-modal="true" aria-label={`Request a seat for ${program.title}`}>
+        <button className="close-button" type="button" onClick={onClose} aria-label="Close RSVP">
+          <X aria-hidden="true" />
+        </button>
+        <img src={program.image} alt="" />
+        <form onSubmit={onSubmit}>
+          <small>{program.dateLabel} · {program.timeLabel}</small>
+          <h2>{program.title}</h2>
+          <p>{program.description}</p>
+          <label>
+            Name
+            <input required placeholder="Your name" />
+          </label>
+          <label>
+            Email
+            <input required type="email" placeholder="you@example.com" />
+          </label>
+          <label>
+            Guests
+            <input min="1" type="number" defaultValue="1" />
+          </label>
+          <button className="button primary" type="submit">
+            <CalendarDays aria-hidden="true" size={18} />
+            Request RSVP
+          </button>
+          {done && (
+            <p className="success-message">
+              <Check aria-hidden="true" size={18} />
+              RSVP request drafted. Final dates still need confirmation before this becomes a live booking.
+            </p>
+          )}
+        </form>
+      </article>
+    </div>
   );
 }
 

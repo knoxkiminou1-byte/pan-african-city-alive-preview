@@ -1,11 +1,14 @@
-# Pan African City Alive Preview
+# Pan African City Alive Storefront
 
-High-fidelity preview website concept for Pan African City Alive, built as a Vite + React static site.
+Full storefront draft for Pan African City Alive, built as a Vite + React static site.
 
-## Preview Modes
+## What Is Included
 
-- Option 1 keeps the interactive concept site with the animated mask entrance, founder story, collection browsing, event sections, and fake shop actions.
-- Option 2 uses the generated preview pictures, the supplied real store/founder photos, and the photo-led mask entrance demo with the yellow "click the mask to open" callout.
+- Animated click-the-mask entrance with optional drum ambience.
+- Pan-African symbol logo, kente side rails, full hero, founder story, shop categories, product grid, gallery, events, visit, footer, and SEO metadata.
+- Working local cart, quantity controls, product detail modal, checkout/request form, event RSVP modal, category filtering, search, and newsletter/contact form UI.
+- Project-local image library in `public/images/final`, derived from supplied/generated assets plus the public Renaissance Center Keisha image.
+- Factual business claims are limited to the supplied research PDF and public-source supported items. Inventory, sample prices, and event dates are marked as draft/demo data until confirmed.
 
 ## Local Commands
 
