@@ -270,11 +270,12 @@ const categories = ["All", ...collections.map((collection) => collection.title)]
 type CategoryFilter = (typeof categories)[number];
 
 const navItems = [
-  ["Story", "#story"],
-  ["Shop", "#shop"],
-  ["Events", "#events"],
-  ["Gallery", "#gallery"],
-  ["Visit", "#visit"]
+  ["Story", "/#story"],
+  ["Bio", "/bio"],
+  ["Shop", "/#shop"],
+  ["Events", "/#events"],
+  ["Gallery", "/#gallery"],
+  ["Visit", "/#visit"]
 ] as const;
 
 function formatCurrency(value: number) {
@@ -306,6 +307,7 @@ function useDrumLoop(enabled: boolean) {
 }
 
 function App() {
+  const isBioPage = window.location.pathname === "/bio";
   const [introVisible, setIntroVisible] = useState(false);
   const [introOpening, setIntroOpening] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -320,6 +322,32 @@ function App() {
   const [drumsOn, setDrumsOn] = useState(false);
 
   useDrumLoop(drumsOn);
+
+  useEffect(() => {
+    if (introVisible || !window.location.hash) return;
+    const hash = window.location.hash.slice(1);
+    const timers: number[] = [];
+    const scrollToHash = () => {
+      const target = document.getElementById(hash);
+      if (!target) return;
+      const headerOffset = 118;
+      const top = Math.max(0, target.getBoundingClientRect().top + window.scrollY - headerOffset);
+      window.scrollTo(0, top);
+      document.documentElement.scrollTop = top;
+      document.body.scrollTop = top;
+    };
+
+    const frame = window.requestAnimationFrame(() => {
+      [80, 220, 520, 940, 1400].forEach((delay) => {
+        timers.push(window.setTimeout(scrollToHash, delay));
+      });
+    });
+
+    return () => {
+      window.cancelAnimationFrame(frame);
+      timers.forEach((timer) => window.clearTimeout(timer));
+    };
+  }, [introVisible]);
 
   const filteredProducts = useMemo(() => {
     const query = searchTerm.trim().toLowerCase();
@@ -387,24 +415,34 @@ function App() {
       {menuOpen && <MobileNav onClose={() => setMenuOpen(false)} />}
 
       <main>
-        <Hero onShop={() => document.querySelector("#shop")?.scrollIntoView({ behavior: "smooth" })} />
-        <Story />
-        <Collections activeCategory={activeCategory} onSelect={setActiveCategory} />
-        <Shop
-          activeCategory={activeCategory}
-          products={filteredProducts}
-          searchTerm={searchTerm}
-          onAdd={addToCart}
-          onCategory={setActiveCategory}
-          onSearch={setSearchTerm}
-          onSelect={setSelectedProduct}
-        />
-        <Events onRsvp={(program) => {
-          setActiveProgram(program);
-          setRsvpDone(false);
-        }} />
-        <Gallery />
-        <Visit />
+        {isBioPage ? (
+          <>
+            <Bio />
+            <Visit />
+          </>
+        ) : (
+          <>
+            <Hero onShop={() => document.querySelector("#shop")?.scrollIntoView({ behavior: "smooth" })} />
+            <Story />
+            <Bio />
+            <Collections activeCategory={activeCategory} onSelect={setActiveCategory} />
+            <Shop
+              activeCategory={activeCategory}
+              products={filteredProducts}
+              searchTerm={searchTerm}
+              onAdd={addToCart}
+              onCategory={setActiveCategory}
+              onSearch={setSearchTerm}
+              onSelect={setSelectedProduct}
+            />
+            <Events onRsvp={(program) => {
+              setActiveProgram(program);
+              setRsvpDone(false);
+            }} />
+            <Gallery />
+            <Visit />
+          </>
+        )}
       </main>
 
       <Footer />
@@ -502,7 +540,7 @@ function Header({
         <span>Commerce</span>
       </div>
       <header className="site-header">
-        <a className="brand" href="#top" aria-label="Pan African City Alive home">
+        <a className="brand" href="/" aria-label="Pan African City Alive home">
           <LogoMark />
           <span>
             Pan African
@@ -544,22 +582,7 @@ function MobileNav({ onClose }: { onClose: () => void }) {
 
 function LogoMark() {
   return (
-    <svg className="logo-mark" viewBox="0 0 100 100" role="img" aria-label="Pan-African flag symbol with Africa silhouette">
-      <circle cx="50" cy="50" r="44" fill="#FFF7E9" stroke="#201A18" strokeWidth="4" />
-      <path d="M18 37h64" stroke="#B3241C" strokeWidth="12" strokeLinecap="round" />
-      <path d="M18 50h64" stroke="#151515" strokeWidth="12" strokeLinecap="round" />
-      <path d="M18 63h64" stroke="#1E6A45" strokeWidth="12" strokeLinecap="round" />
-      <path
-        className="logo-africa"
-        d="M52 13c-8 2-15 7-18 15-3 7 1 12-3 18-3 4-9 6-9 12 0 6 7 8 12 10 6 3 5 10 11 14 5 4 12 1 13-5 2-8-2-12 5-20 5-6 13-7 15-14 3-9-6-11-10-17-5-8-7-15-16-13z"
-        fill="#151515"
-        stroke="#D7A332"
-        strokeWidth="4"
-        strokeLinejoin="round"
-      />
-      <circle cx="50" cy="50" r="20" fill="none" stroke="#FFF7E9" strokeWidth="3" opacity=".92" />
-      <path d="M18 78c18 10 46 10 64 0" fill="none" stroke="#B3241C" strokeWidth="5" strokeLinecap="round" />
-    </svg>
+    <img className="logo-mark" src="/images/brand/paca-emblem.png" alt="Pan African City Alive emblem" />
   );
 }
 
@@ -640,6 +663,70 @@ function Story() {
           <strong>Legacy</strong>
           <span>Building a lasting impact for future generations.</span>
         </article>
+      </div>
+    </section>
+  );
+}
+
+function Bio() {
+  const sourceLinks = [
+    ["Renaissance Entrepreneurship Center", "https://rencenter.org/success-stories/pan-africa-city-alive/"],
+    ["PGHS Alumni Association obituary", "https://www.pghsaa.org/newsletters/PGHSAA-Fall-2023-KOII-Sm.pdf"],
+    ["Ravenswood High School Alumni honorees", "https://www.ravenswoodhsaainc.org/honorees"],
+    ["Museum of the African Diaspora event listing", "https://www.moadsf.org/event/free-community-event-east-palo-altos-black-diaspora-collective-memory-and-freedom-dreams"]
+  ] as const;
+
+  return (
+    <section className="bio-section" id="bio">
+      <div className="bio-layout">
+        <div className="bio-copy">
+          <p className="section-kicker">Founders' bio</p>
+          <h2>Mama Keisha Evans and Alonzo "Pete" Evans built a living cultural home.</h2>
+          <p>
+            Public profiles identify Keisha Evans as the owner of Pan African City Alive, a retail business rooted in authentic African goods since 1993. Community listings also recognize her as Mama Keisha Evans, a beloved East Palo Alto community elder and cultural store owner.
+          </p>
+          <p>
+            The public record for her husband appears as both Peter Evans and Alonzo "Pete" Evans. A PGHS Alumni Association obituary names Alonzo Pete Evans as a civic leader who served East Palo Alto through parks, sanitation, and city government, including two terms on the City Council and time as Vice Mayor.
+          </p>
+          <p>
+            That obituary says Pete met Keisha while both were serving on the Ravenswood Park and Recreation Board of Trustees. They continued their civic work together and opened Pan African City Alive in 1993, creating a Bay Area destination for products from Africa and the Diaspora.
+          </p>
+        </div>
+
+        <div className="bio-portrait-stack" aria-label="Founder and store imagery">
+          <img src={clientImage("real-keisha-wall.jpg")} alt="Mama Keisha standing in front of a wall of African masks and art" />
+          <img src={clientImage("real-front-mask-sign.jpg")} alt="Pan African City Alive storefront display with masks and signs" />
+        </div>
+      </div>
+
+      <div className="bio-card-grid" aria-label="Founder legacy highlights">
+        <article className="bio-card">
+          <User aria-hidden="true" />
+          <span>Mama Keisha Evans</span>
+          <p>Owner, maker, storyteller, and cultural host whose shop centers clothing, masks, carvings, black soap, shea butter, indigenous fabrics, mudcloth textiles, and garments.</p>
+        </article>
+        <article className="bio-card">
+          <Heart aria-hidden="true" />
+          <span>Alonzo "Pete" Evans</span>
+          <p>Civic leader, husband, and co-founder remembered for public service in East Palo Alto and for helping build Pan African City Alive into a place for young and old.</p>
+        </article>
+        <article className="bio-card">
+          <BookOpen aria-hidden="true" />
+          <span>The store they started</span>
+          <p>Opened in 1993 as an African retail shop and grew into a cultural gathering point for goods, memory, learning, and community connection.</p>
+        </article>
+      </div>
+
+      <div className="bio-source-list">
+        <strong>Public sources used for this bio</strong>
+        <div>
+          {sourceLinks.map(([label, href]) => (
+            <a key={href} href={href} target="_blank" rel="noreferrer">
+              {label}
+              <ExternalLink aria-hidden="true" size={15} />
+            </a>
+          ))}
+        </div>
       </div>
     </section>
   );
